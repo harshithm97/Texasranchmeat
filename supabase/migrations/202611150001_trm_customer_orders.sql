@@ -112,7 +112,7 @@ begin
   -- Aggregate duplicate product IDs before checking/decrementing inventory.
   for v_product_id, v_qty in
     select item->>'product_id', sum((item->>'quantity')::integer)::integer
-    from jsonb_array_elements(p_items) item
+    from jsonb_array_elements(p_items) as items(item)
     group by item->>'product_id'
   loop
     if v_product_id is null or v_qty < 1 or v_qty > 30 then raise exception 'Invalid item quantity.'; end if;
@@ -130,7 +130,7 @@ begin
 
   for v_product_id, v_qty in
     select item->>'product_id', sum((item->>'quantity')::integer)::integer
-    from jsonb_array_elements(p_items) item
+    from jsonb_array_elements(p_items) as items(item)
     group by item->>'product_id'
   loop
     select * into v_product from public.products where id = v_product_id for update;
