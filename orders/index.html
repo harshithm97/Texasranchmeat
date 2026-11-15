@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>My Orders | Texas Ranch Meat</title><link rel="stylesheet" href="../css/styles.css" /></head>
-<body><header id="siteHeader" class="ranch-header"></header><main class="container"><section class="card"><h1>My Sunday Delivery Orders</h1><p style="color:var(--ink-muted);margin-bottom:1rem;">Your account order history and live fulfillment status.</p><div id="ordersContainer">Loading orders…</div></section></main><footer class="ranch-footer">Texas Ranch Meat • Sunday-Only Delivery • Dallas Service Area</footer>
+<body><header id="siteHeader" class="ranch-header"></header><main class="container"><section class="card"><h1>My Sunday Delivery Orders</h1><p style="color:var(--ink-muted);margin-bottom:1rem;">Your account order history and live fulfillment status.</p><div id="ordersContainer">Loading orders…</div></section></main><footer class="ranch-footer"><img src="../assets/logo.jpg" alt="Texas Ranch Meat logo" class="footer-logo"><div>© 2026 Texas Ranch Meat. All rights reserved.</div><div><a href="/terms/">Terms &amp; Conditions</a> • <a href="/privacy/">Privacy Policy</a></div><div>Customer / Admin contact: <a href="tel:+19492954650">949-295-4650</a></div></footer>
 <script type="module">
 import {supabase,requireUser,signOut} from "../js/supabase.js";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
