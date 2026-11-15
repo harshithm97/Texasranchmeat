@@ -1,188 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Texas Ranch Meat | Goat &amp; Chicken</title>
-  <link rel="stylesheet" href="css/styles.css" />
-</head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Texas Ranch Meat | Goat & Chicken</title><link rel="stylesheet" href="css/styles.css"></head>
 <body>
-  <header id="siteHeader" class="ranch-header"></header>
-
-  <main class="container">
-    <section class="hero-banner">
-      <img src="assets/logo.jpg" alt="Texas Ranch Meat Logo" class="hero-logo" />
-      <div class="hero-content">
-        <h1>Fresh Goat &amp; Chicken, Delivered Sundays</h1>
-        <p>Fresh ranch favorites, delivered to your door. Orders open <strong>Friday 12:00 AM through Saturday Midnight</strong> for Sunday delivery within a <strong>30-mile radius of Dallas</strong>.</p>
-        <div class="badge-row" id="statusBadges"></div>
-      </div>
-    </section>
-
-    <!-- Registration is open while WhatsApp verification is being prepared. -->
-    <section id="authSection" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle" style="display:none"><div class="card auth-gate-card auth-modal">
-      <span class="badge">Customer registration open</span>
-      <button type="button" class="modal-close" id="closeAuth" aria-label="Close login">×</button><h2 id="authTitle" style="margin-top:.8rem">Welcome to Texas Ranch Meat</h2>
-      <p style="margin-bottom:1.2rem;color:var(--ink-muted);">Sign in on this device to continue shopping. WhatsApp account verification will be enabled after our WhatsApp Business setup is complete. New customers can register below.</p>
-      <form id="registerForm" style="max-width:480px;">
-        <div class="form-group"><label for="regName">Full Name</label><input type="text" id="regName" autocomplete="name" required /></div>
-        <div class="form-group"><label for="regPhone">Mobile Phone Number</label><input type="tel" id="regPhone" placeholder="(214) 555-0199" autocomplete="tel" inputmode="tel" required /></div>
-        <div class="form-group"><label for="regAddress">Street Address</label><input type="text" id="regAddress" autocomplete="street-address" required /></div>
-        <div class="form-group"><label for="regZip">Texas ZIP Code</label><input type="text" id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required /></div>
-        <button type="submit" class="btn btn-sage">Continue & create profile</button>
-      </form>
-      <p class="registration-note" style="margin-top:1rem;font-size:.84rem;color:var(--ink-muted);">Your phone number is collected for future WhatsApp verification. It is not verified at this stage.</p>
-    </div></section>
-
-    <!-- PROTECTED STOREFRONT CONTENT (Rendered ONLY after successful login) -->
-    <div id="protectedStoreContainer" class="protected-content" style="display: none;">
-      <section class="card">
-        <h2>Shop Our Meat</h2>
-        <p style="color:var(--ink-muted);">Choose from our two categories: goat and chicken.</p>
-        <div id="productGrid" style="display:grid; gap:1rem; margin-top:1rem;"></div>
-      </section>
-
-      <section class="card">
-        <h2>Your Sunday Delivery Basket</h2>
-        <div id="cartItems" style="margin:0.75rem 0;"></div>
-        <div id="cartSummary" style="font-weight:700; margin-bottom:1rem;"></div>
-        <div class="form-group" style="max-width:320px;">
-          <label for="paymentMethod">Preferred Payment Method</label>
-          <select id="paymentMethod">
-            <option value="Zelle">Zelle</option>
-            <option value="Venmo">Venmo</option>
-            <option value="Cash on Sunday">Cash on Sunday Delivery</option>
-            <option value="Card">Card</option>
-          </select>
-        </div>
-        <button id="placeOrderBtn" class="btn btn-sage">Place Order</button>
-      </section>
-    </div>
-  </main>
-
-  <footer class="ranch-footer">
-    Texas Ranch Meat • Grown &amp; Served in Texas • Dallas 30-Mile Sunday Delivery Only
-  </footer>
-
-  <script type="module">
-    import { supabase, requireUser, getProfile, saveProfile, signOut } from "./js/supabase.js";
-    import { isDallas30MileZip, showToast, isOrderWindowOpen } from "./js/store.js";
-
-    let user = null, profile = null, products = [], cart = [];
-    const money = n => "$" + Number(n || 0).toFixed(2);
-    async function init() {
-      try {
-        user = await requireUser();
-        if (user) { await loadCustomer(); return; }
-        showAuth();
-      } catch (error) { showToast(error.message || "Unable to connect."); showAuth(); }
-    }
-    function showAuth() { document.getElementById("authSection").style.display="flex"; document.getElementById("protectedStoreContainer").style.display="none"; renderPublicHeader(); }
-    function renderPublicHeader() { document.getElementById("siteHeader").innerHTML = `<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo" /><span>Texas Ranch Meat</span></a><button type="button" id="openLogin" class="btn btn-sage">Login</button>`; document.getElementById("openLogin").addEventListener("click",()=>{document.getElementById("authSection").style.display="flex";document.getElementById("regName").focus();}); }
-    async function loadCustomer() {
-      renderHeader();
-      profile = await getProfile(user.id);
-      if (!profile || !profile.full_name || !profile.address || !profile.zip) {
-        document.getElementById("authSection").style.display = "flex";
-        document.getElementById("registerForm").style.display = "block";
-        document.getElementById("regPhone").value = profile?.phone || "";
-        document.getElementById("regName").value = profile?.full_name || "";
-        document.getElementById("regAddress").value = profile?.address || "";
-        document.getElementById("regZip").value = profile?.zip || "";
-        return;
-      }
-      document.getElementById("authSection").style.display = "none";
-      document.getElementById("protectedStoreContainer").style.display = "block";
-      await loadProducts();
-    }
-    function renderHeader() {
-      const header = document.getElementById("siteHeader");
-      header.innerHTML = `<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo" /><span>Texas Ranch Meat</span></a>
-        <nav class="ranch-nav" aria-label="Main navigation">
-          <a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a>
-          <button type="button" id="headerSignOut" class="btn btn-secondary btn-sm">Sign out</button>
-        </nav>`;
-      document.getElementById("headerSignOut").addEventListener("click", async () => {
-        await signOut(); window.location.href = "index.html";
-      });
-    }
-    async function loadProducts() {
-      const { data, error } = await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active", true).order("category").order("name");
-      if (error) throw error;
-      products = data || [];
-      document.getElementById("statusBadges").innerHTML = '<span class="badge">Sunday delivery • Dallas service area</span>';
-      renderProducts(); renderCart();
-    }
-    document.getElementById("registerForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const button = e.currentTarget.querySelector('button[type="submit"]');
-      const full_name = document.getElementById("regName").value.trim();
-      const rawPhone = document.getElementById("regPhone").value.trim();
-      const digits = rawPhone.replace(/\D/g, "");
-      const phone = digits.length === 10 ? "+1" + digits : digits.length === 11 && digits.startsWith("1") ? "+" + digits : "";
-      const address = document.getElementById("regAddress").value.trim();
-      const zip = document.getElementById("regZip").value.trim();
-      if (!/^\+1\d{10}$/.test(phone)) { showToast("Enter a valid 10-digit US mobile number."); return; }
-      if (!isDallas30MileZip(zip)) { showToast("Please enter a ZIP code in the current Dallas service area."); return; }
-      button.disabled = true;
-      try {
-        if (!user) {
-          const { data, error } = await supabase.auth.signInAnonymously({ options: { data: { phone } } });
-          if (error) throw error;
-          user = data.user;
-        }
-        profile = await saveProfile({ id:user.id, phone, full_name, address, zip });
-        await loadCustomer();
-        showToast("Registration complete. Phone verification will be added with WhatsApp Business.");
-      } catch (error) {
-        showToast(error.message.includes("Anonymous") || error.message.includes("anonymous")
-          ? "Please enable Anonymous Sign-Ins in Supabase Authentication settings, then try again."
-          : error.message);
-      } finally { button.disabled = false; }
-    });
-
-    function renderProducts() {
-      const grid = document.getElementById("productGrid");
-      const categories = [{id:"goat",title:"Goat"},{id:"chicken",title:"Chicken"}];
-      grid.innerHTML = categories.map(c => {
-        const rows = products.filter(p => p.category === c.id);
-        if (!rows.length) return "";
-        return `<section><h3>${c.title}</h3><div class="grid-2">${rows.map(p => {
-          const sold = p.stock <= 0;
-          return `<article class="card" style="margin:0"><div style="display:flex;justify-content:space-between;gap:.75rem"><h3>${escapeHtml(p.name)}</h3><span class="badge">${sold?"Sold out":"In stock"}</span></div>
-            <p style="color:var(--ink-muted);margin:.4rem 0">${p.weight_lb} lb pack • ${money(p.price_per_lb)}/lb • ${money(p.weight_lb*p.price_per_lb)}/pack</p>
-            <button class="btn btn-sm" data-add="${p.id}" ${sold?"disabled":""}>Add to basket</button></article>`;
-        }).join("")}</div></section>`;
-      }).join("");
-      grid.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => {
-        const p = products.find(x => x.id === b.dataset.add), found = cart.find(x => x.id === p.id);
-        if (!p || (found?.qty || 0) >= p.stock) return showToast("No additional stock available.");
-        if (found) found.qty++; else cart.push({id:p.id,name:p.name,weight_lb:p.weight_lb,price_per_lb:p.price_per_lb,qty:1});
-        renderCart();
-      }));
-    }
-    function renderCart() {
-      const items = document.getElementById("cartItems"), summary = document.getElementById("cartSummary");
-      if (!cart.length) { items.innerHTML = "<p>Your basket is empty.</p>"; summary.textContent = ""; return; }
-      const subtotal = cart.reduce((s,x) => s+x.weight_lb*x.price_per_lb*x.qty,0);
-      items.innerHTML = cart.map((x,i) => `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span>${escapeHtml(x.name)} (${x.weight_lb} lb × ${x.qty})</span><button class="btn btn-secondary btn-sm" data-remove="${i}">Remove</button></div>`).join("");
-      summary.textContent = "Subtotal: " + money(subtotal) + " + delivery fee calculated at checkout";
-      items.querySelectorAll("[data-remove]").forEach(b => b.addEventListener("click",()=>{cart.splice(Number(b.dataset.remove),1);renderCart();}));
-    }
-    document.getElementById("placeOrderBtn").addEventListener("click", async () => {
-      if (!cart.length) return showToast("Add at least one pack first.");
-      const button = document.getElementById("placeOrderBtn"); button.disabled = true;
-      try {
-        const { data, error } = await supabase.rpc("place_order", { p_items: cart.map(x => ({product_id:x.id,quantity:x.qty})), p_payment_method: document.getElementById("paymentMethod").value });
-        if (error) throw error;
-        cart = []; showToast("Order received. Order #" + String(data).slice(0,8));
-        window.location.href = "/orders/";
-      } catch (error) { showToast(error.message || "Order could not be placed."); button.disabled = false; }
-    });
-    function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-    document.getElementById("closeAuth").addEventListener("click",()=>{if(!user)document.getElementById("authSection").style.display="none";});
-    document.getElementById("authSection").addEventListener("click",e=>{if(e.target.id==="authSection"&&!user)e.currentTarget.style.display="none";});
-    init();
-  </script>
-</body>
-</html>
+<header id="siteHeader" class="ranch-header"></header>
+<main class="container">
+<section class="hero-banner"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="hero-logo"><div class="hero-content"><h1>Fresh Goat & Chicken, Delivered Sundays</h1><p>Fresh ranch favorites, delivered to your door. Orders open Friday through Saturday for Sunday delivery within our Dallas service area.</p><div class="badge-row" id="statusBadges"></div></div></section>
+<section id="authSection" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+ <div class="card auth-gate-card auth-modal">
+  <button type="button" class="modal-close" id="closeAuth" aria-label="Close login">×</button>
+  <span class="badge">Customer access</span><h2 id="authTitle" style="margin-top:.8rem">Welcome to Texas Ranch Meat</h2>
+  <p id="authDescription" style="color:var(--ink-muted);margin-bottom:1rem">Enter your mobile number to continue. WhatsApp verification will be enabled after our WhatsApp Business setup is complete.</p>
+  <form id="phoneForm"><div class="form-group"><label for="phoneInput">Mobile phone number</label><input id="phoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="(214) 555-0199" required></div><button class="btn btn-sage" type="submit">Continue</button></form>
+  <form id="profileCreateForm" hidden style="max-width:480px;margin-top:1rem">
+   <p id="profileFormIntro" style="margin-bottom:1rem;color:var(--ink-muted)">We couldn't find a profile available to this signed-in account. Complete your details to create your customer profile.</p>
+   <div class="form-group"><label for="regName">Full name</label><input id="regName" autocomplete="name" required></div>
+   <div class="form-group"><label for="regAddress">Street address</label><input id="regAddress" autocomplete="street-address" required></div>
+   <div class="form-group"><label for="regZip">Texas ZIP code</label><input id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
+   <div class="row" style="display:flex;gap:.7rem;flex-wrap:wrap"><button type="submit" class="btn btn-sage">Save profile</button><button type="button" id="cancelProfile" class="btn btn-secondary">Cancel</button></div>
+  </form>
+  <p id="authMessage" role="status" aria-live="polite" style="margin-top:1rem;color:var(--ink-muted)"></p>
+  <p style="margin-top:1rem;font-size:.82rem;color:var(--ink-muted)">Phone numbers are not verified yet. Do not use this flow to recover an account on a different device; WhatsApp verification will provide secure recovery later.</p>
+ </div>
+</section>
+<div id="protectedStoreContainer" class="protected-content" hidden>
+ <section class="card"><h2>Shop Our Meat</h2><p style="color:var(--ink-muted)">Choose from our two categories: goat and chicken.</p><div id="productGrid" style="display:grid;gap:1rem;margin-top:1rem"></div></section>
+ <section class="card"><h2>Your Sunday Delivery Basket</h2><div id="cartItems" style="margin:.75rem 0"></div><div id="cartSummary" style="font-weight:700;margin-bottom:1rem"></div><div class="form-group" style="max-width:320px"><label for="paymentMethod">Preferred payment method</label><select id="paymentMethod"><option>Zelle</option><option>Venmo</option><option>Cash on Sunday</option><option>Card</option></select></div><button id="placeOrderBtn" class="btn btn-sage">Place order</button></section>
+</div></main><footer class="ranch-footer">Texas Ranch Meat • Grown & Served in Texas • Sunday delivery</footer>
+<script type="module">
+import {supabase,requireUser,getProfile,saveProfile,signOut} from "./js/supabase.js";
+import {isDallas30MileZip,showToast} from "./js/store.js";
+let user=null,profile=null,products=[],cart=[],phone="";
+const $=id=>document.getElementById(id), money=n=>"$"+Number(n||0).toFixed(2);
+const normalizePhone=v=>{const d=String(v||"").replace(/\\D/g,"");return d.length===10?"+1"+d:d.length===11&&d.startsWith("1")?"+"+d:"";};
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function message(t){$("authMessage").textContent=t;}
+function openAuth(){ $("authSection").hidden=false; $("protectedStoreContainer").hidden=true; $("phoneInput").focus(); }
+function closeAuth(){ if(user&&profile?.full_name&&profile?.address&&profile?.zip){$("authSection").hidden=true;$("protectedStoreContainer").hidden=false;} else {message("Sign-in is required to view the store. Your unsaved changes have been discarded.");$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;} }
+function publicHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><button id="openLogin" class="btn btn-sage">Login</button>'; $("openLogin").onclick=openAuth; }
+function customerHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><nav class="ranch-nav"><a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></nav>'; $("signOut").onclick=async()=>{await signOut();location.replace("/");}; }
+async function init(){try{user=await requireUser();publicHeader();if(user){profile=await getProfile(user.id);if(profile?.phone){$("phoneInput").value=profile.phone;} }openAuth();}catch(e){message(e.message);openAuth();}}
+$("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=normalizePhone($("phoneInput").value);if(!/^\\+1\\d{10}$/.test(phone)){message("Enter a valid 10-digit US phone number.");return;}
+ const btn=e.submitter;btn.disabled=true;message("");
+ try{
+  if(user){profile=await getProfile(user.id);const accountPhone=normalizePhone(profile?.phone||user.user_metadata?.phone);if(profile&&accountPhone===phone&&profile.full_name&&profile.address&&profile.zip){await enterStore();return;}
+   if(profile&&accountPhone&&accountPhone!==phone){message("This phone number does not match the account signed in on this device. Sign out and use the original account, or wait for WhatsApp verification to recover an account securely.");return;}
+  }else{const {data,error}=await supabase.auth.signInAnonymously({options:{data:{phone}}});if(error)throw error;user=data.user;profile=await getProfile(user.id);}
+  $("phoneForm").hidden=true;$("profileCreateForm").hidden=false;$("regName").value=profile?.full_name||"";$("regAddress").value=profile?.address||"";$("regZip").value=profile?.zip||"";$("regName").focus();
+ }catch(err){const text=String(err.message||"");message(/duplicate|unique|profiles_phone_key/i.test(text)?"A customer profile already uses this number. For privacy, we cannot reveal or retrieve that profile using an unverified phone number. Use the original signed-in device; WhatsApp account recovery will be enabled after setup.":text);}
+ finally{btn.disabled=false;}
+});
+$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name||!address||!/^\\d{5}$/.test(zip)||!isDallas30MileZip(zip))throw new Error("Enter your name, street address, and a valid ZIP code in our Dallas delivery area.");profile=await saveProfile({id:user.id,phone,full_name,address,zip});await enterStore();showToast("Profile saved successfully.");}catch(err){message(err.message);}finally{btn.disabled=false;}});
+$("cancelProfile").onclick=()=>{ $("profileCreateForm").reset();$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;message("Profile changes cancelled.");};
+async function enterStore(){customerHeader();$("authSection").hidden=true;$("protectedStoreContainer").hidden=false;await loadProducts();}
+async function loadProducts(){const {data,error}=await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active",true).order("category").order("name");if(error)throw error;products=data||[];$("statusBadges").innerHTML='<span class="badge">Sunday delivery • Dallas service area</span>';renderProducts();renderCart();}
+function renderProducts(){const groups=[["goat","Goat"],["chicken","Chicken"]];$("productGrid").innerHTML=groups.map(([key,label])=>{const list=products.filter(p=>p.category===key);return list.length?'<section><h3>'+label+'</h3><div class="grid-2">'+list.map(p=>'<article class="card" style="margin:0"><h3>'+esc(p.name)+'</h3><p>'+p.weight_lb+' lb pack • '+money(p.price_per_lb)+'/lb • '+money(p.weight_lb*p.price_per_lb)+'/pack</p><span class="badge">'+(p.stock>0?"In stock":"Sold out")+'</span><button class="btn btn-sm" data-add="'+esc(p.id)+'" '+(p.stock>0?"":"disabled")+'>Add to basket</button></article>').join("")+'</div></section>':"";}).join("");$("productGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{const p=products.find(x=>x.id===b.dataset.add),item=cart.find(x=>x.id===p.id);if(item&&item.qty>=p.stock)return showToast("No additional stock available.");if(item)item.qty++;else cart.push({id:p.id,name:p.name,weight_lb:p.weight_lb,price_per_lb:p.price_per_lb,qty:1});renderCart();});}
+function renderCart(){if(!cart.length){$("cartItems").innerHTML="<p>Your basket is empty.</p>";$("cartSummary").textContent="";return;}const subtotal=cart.reduce((s,x)=>s+x.weight_lb*x.price_per_lb*x.qty,0);$("cartItems").innerHTML=cart.map((x,i)=>'<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span>'+esc(x.name)+' ('+x.weight_lb+' lb × '+x.qty+')</span><button class="btn btn-secondary btn-sm" data-remove="'+i+'">Remove</button></div>').join("");$("cartSummary").textContent="Subtotal: "+money(subtotal)+" + delivery fee";$("cartItems").querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{cart.splice(Number(b.dataset.remove),1);renderCart();});}
+$("placeOrderBtn").onclick=async()=>{if(!cart.length)return showToast("Add at least one pack first.");const b=$("placeOrderBtn");b.disabled=true;try{const {data,error}=await supabase.rpc("place_order",{p_items:cart.map(x=>({product_id:x.id,quantity:x.qty})),p_payment_method:$("paymentMethod").value});if(error)throw error;cart=[];showToast("Order received. Order #"+String(data).slice(0,8));location.href="/orders/";}catch(e){showToast(e.message||"Order could not be placed.");b.disabled=false;}};
+$("closeAuth").onclick=closeAuth;$("authSection").addEventListener("click",e=>{if(e.target===$("authSection"))closeAuth();});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("authSection").hidden)closeAuth();});
+init().catch(e=>message(e.message));
+</script></body></html>
