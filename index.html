@@ -30,7 +30,7 @@ import {supabase,requireUser,getProfile,saveProfile,signOut} from "./js/supabase
 import {isDallas30MileZip,showToast} from "./js/store.js";
 let user=null,profile=null,products=[],cart=[],phone="";
 const $=id=>document.getElementById(id), money=n=>"$"+Number(n||0).toFixed(2);
-const normalizePhone=v=>{const d=String(v||"").replace(/\\D/g,"");return d.length===10?"+1"+d:d.length===11&&d.startsWith("1")?"+"+d:"";};
+const normalizePhone=v=>{const d=String(v||"").replace(/\D/g,"");return d.length===10?"+1"+d:d.length===11&&d.startsWith("1")?"+"+d:"";};
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function message(t){$("authMessage").textContent=t;}\nasync function recordConsent(){const {error}=await supabase.from("customer_consents").insert({user_id:user.id,phone,terms_version:"2026-11-15",privacy_version:"2026-11-15"});if(error)throw error;}
 function openAuth(){ $("authSection").hidden=false; $("protectedStoreContainer").hidden=true; $("phoneInput").focus(); }
@@ -38,7 +38,7 @@ function closeAuth(){ $("authSection").hidden=true; $("protectedStoreContainer")
 function publicHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><button id="openLogin" class="btn btn-sage">Login</button>'; $("openLogin").onclick=openAuth; }
 function customerHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><nav class="ranch-nav"><a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></nav>'; $("signOut").onclick=async()=>{await signOut();location.replace("/");}; }
 async function init(){try{user=await requireUser();publicHeader();if(user){profile=await getProfile(user.id);if(profile?.phone){$("phoneInput").value=profile.phone;} }openAuth();}catch(e){message(e.message);openAuth();}}
-$("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=normalizePhone($("phoneInput").value);if(!/^\\+1\\d{10}$/.test(phone)){message("Enter a valid 10-digit US phone number.");return;}
+$("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=normalizePhone($("phoneInput").value);if(!/^\+1\d{10}$/.test(phone)){message("Enter a valid 10-digit US phone number.");return;}
  const btn=e.submitter;btn.disabled=true;message("");
  try{
   if(user){profile=await getProfile(user.id);const accountPhone=normalizePhone(profile?.phone||user.user_metadata?.phone);if(profile&&accountPhone===phone&&profile.full_name&&profile.address&&profile.zip){await recordConsent();await enterStore();return;}
@@ -48,7 +48,7 @@ $("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=norm
  }catch(err){const text=String(err.message||"");message(/duplicate|unique|profiles_phone_key/i.test(text)?"A customer profile already uses this number. For privacy, we cannot reveal or retrieve that profile using an unverified phone number. Use the original signed-in device; WhatsApp account recovery will be enabled after setup.":text);}
  finally{btn.disabled=false;}
 });
-$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name||!address||!/^\\d{5}$/.test(zip)||!isDallas30MileZip(zip))throw new Error("Enter your name, street address, and a valid ZIP code in our Dallas delivery area.");profile=await saveProfile({id:user.id,phone,full_name,address,zip});await enterStore();showToast("Profile saved successfully.");}catch(err){message(err.message);}finally{btn.disabled=false;}});
+$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name||!address||!/^\d{5}$/.test(zip)||!isDallas30MileZip(zip))throw new Error("Enter your name, street address, and a valid ZIP code in our Dallas delivery area.");profile=await saveProfile({id:user.id,phone,full_name,address,zip});await enterStore();showToast("Profile saved successfully.");}catch(err){message(err.message);}finally{btn.disabled=false;}});
 $("cancelProfile").onclick=()=>{ $("profileCreateForm").reset();$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;message("Profile changes cancelled.");};
 async function enterStore(){customerHeader();$("authSection").hidden=true;$("protectedStoreContainer").hidden=false;await loadProducts();}
 async function loadProducts(){const {data,error}=await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active",true).order("category").order("name");if(error)throw error;products=data||[];$("statusBadges").innerHTML='<span class="badge">Sunday delivery • Dallas service area</span>';renderProducts();renderCart();}
