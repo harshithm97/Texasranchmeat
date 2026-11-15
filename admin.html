@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranch Admin Command Center | Texas Ranch Meat</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header id="siteHeader" class="ranch-header"></header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Ranch Admin Command Center</h1>
+      <p style="color:var(--ink-muted); margin-bottom:1rem;">Local demo controls. Changes are saved in this browser only.</p>
+      <div id="adminNotice" class="badge closed" role="status">Admin access requires a trusted server in a production deployment.</div>
+    </section>
+
+    <section class="card">
+      <h2>Live Order Pipeline (Received → Packaged → On the Way! → Delivered)</h2>
+      <div id="kanbanBoard" class="grid-4" style="margin-top:1rem;"></div>
+    </section>
+
+    <section class="card">
+      <h2>Stock Availability &amp; Market Pricing</h2>
+      <div style="overflow-x:auto; margin:1rem 0;">
+        <table>
+          <thead><tr><th>Cut / Product</th><th>Pack Weight</th><th>Price / Lb ($)</th><th>Live Packs in Stock</th></tr></thead>
+          <tbody id="stockTableBody"></tbody>
+        </table>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="adminWindowMode">Weekend Order Window Override</label>
+          <select id="adminWindowMode">
+            <option value="auto">Automatic (Friday 12 AM – Saturday Midnight)</option>
+            <option value="open">Force OPEN</option>
+            <option value="closed">Force CLOSED</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="adminDeliveryFee">Sunday Delivery Fee ($)</label><input type="number" min="0" step="0.01" id="adminDeliveryFee" /></div>
+        <div class="form-group">
+          <label for="adminChicken">Phase 2 Chicken Offerings</label>
+          <select id="adminChicken"><option value="false">Hidden (Goat Only)</option><option value="true">Live on Storefront</option></select>
+        </div>
+      </div>
+      <button id="saveStockBtn" class="btn btn-sage" type="button">Save Stock &amp; Pricing</button>
+    </section>
+
+    <section class="card">
+      <h2>Transactions &amp; Payment Management</h2>
+      <div style="overflow-x:auto; margin-top:1rem;">
+        <table>
+          <thead><tr><th>Order ID</th><th>Customer &amp; Address</th><th>Total</th><th>Payment Method</th><th>Payment Status</th></tr></thead>
+          <tbody id="paymentsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Delegated Admin Access (Registered Customers Only · Max 2 Extra)</h2>
+      <div style="display:flex; gap:0.75rem; max-width:480px; margin:0.75rem 0;">
+        <select id="delegateSelect" aria-label="Choose a registered customer"></select>
+        <button id="grantAdminBtn" class="btn" type="button">Grant Admin</button>
+      </div>
+      <div id="adminList"></div>
+    </section>
+
+    <section class="card">
+      <h2>About data storage</h2>
+      <p style="color:var(--ink-muted);">This static storefront keeps customer profiles and orders in browser storage. They are not shared across devices. Do not store GitHub personal access tokens or sensitive customer data in browser code or sync private records to a public repository. Use a protected server-side API and authenticated admin access for production.</p>
+    </section>
+  </main>
+
+  <footer class="ranch-footer">Texas Ranch Meat • Secure Admin Operations</footer>
+
+  <script type="module">
+    import {
+      loadState, saveState, getSessionPhone, isAdminUser, ORDER_STAGES,
+      formatPhone, renderHeader, showToast
+    } from "./js/store.js";
+
+    let state = loadState();
+    const phone = getSessionPhone();
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+    })[char]);
+
+    if (!isAdminUser(state, phone)) {
+      window.location.replace("index.html");
+    } else {
+      renderHeader("admin");
+      renderAll();
+      bindControls();
+    }
+
+    function renderAll() {
+      renderKanban();
+      renderStockTable();
+      renderPaymentsTable();
+      renderAdmins();
+    }
+
+    function renderKanban() {
+      const board = document.getElementById("kanbanBoard");
+      board.innerHTML = ORDER_STAGES.map((stage, index) => {
+        const orders = state.orders.filter((order) => order.stage === stage);
+        const nextStage = ORDER_STAGES[index + 1];
+        const cards = orders.map((order) => `
+          <article class="kanban-card">
+            <strong>#${escapeHtml(order.id)}</strong> — ${escapeHtml(order.customerName)}<br />
+            <span style="color:var(--ink-muted);">${escapeHtml(formatPhone(order.phone))}</span><br />
+            <div style="margin:0.35rem 0;">${(Array.isArray(order.items) ? order.items : []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.qty)}`).join(", ")}</div>
+            ${nextStage ? `<button class="btn btn-sm" type="button" data-advance="${escapeHtml(order.id)}" data-next="${escapeHtml(nextStage)}">Move to ${escapeHtml(nextStage)} →</button>` : '<span class="badge open">Completed</span>'}
+          </article>
+        `).join("") || '<p style="font-size:.82rem;color:var(--ink-muted);">No orders</p>';
+        return `<div class="kanban-col"><h3>${escapeHtml(stage)} (${orders.length})</h3>${cards}</div>`;
+      }).join("");
+
+      board.querySelectorAll("[data-advance]").forEach((button) => button.addEventListener("click", () => {
+        const order = state.orders.find((entry) => entry.id === button.dataset.advance);
+        if (!order || !ORDER_STAGES.includes(button.dataset.next)) return;
+        order.stage = button.dataset.next;
+        saveState(state);
+        renderKanban();
+        showToast(`Order #${order.id} moved to ${order.stage}.`);
+      }));
+    }
+
+    function renderStockTable() {
+      document.getElementById("stockTableBody").innerHTML = state.products.map((product) => `
+        <tr>
+          <td><strong>${escapeHtml(product.name)}</strong></td>
+          <td>${escapeHtml(product.weightLb)} lb</td>
+          <td><input type="number" min="0" step="0.01" data-price="${escapeHtml(product.id)}" value="${escapeHtml(product.pricePerLb)}" style="width:100px;" aria-label="Price per pound for ${escapeHtml(product.name)}" /></td>
+          <td><input type="number" min="0" step="1" data-stock="${escapeHtml(product.id)}" value="${escapeHtml(product.stock)}" style="width:90px;" aria-label="Stock for ${escapeHtml(product.name)}" /></td>
+        </tr>
+      `).join("");
+      document.getElementById("adminWindowMode").value = state.settings.windowMode || "auto";
+      document.getElementById("adminDeliveryFee").value = Number(state.settings.deliveryFee) || 0;
+      document.getElementById("adminChicken").value = String(Boolean(state.settings.chickenEnabled));
+    }
+
+    function renderPaymentsTable() {
+      const tbody = document.getElementById("paymentsTableBody");
+      if (!state.orders.length) {
+        tbody.innerHTML = '<tr><td colspan="5">No customer orders recorded on this device.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = state.orders.map((order) => `
+        <tr>
+          <td><strong>#${escapeHtml(order.id)}</strong></td>
+          <td>${escapeHtml(order.customerName)} (${escapeHtml(formatPhone(order.phone))})<br /><small>${escapeHtml(order.address)}</small></td>
+          <td>$${Number(order.total || 0).toFixed(2)}</td>
+          <td><select data-paymethod="${escapeHtml(order.id)}" aria-label="Payment method for order ${escapeHtml(order.id)}">
+            ${["Zelle", "Venmo", "Cash on Sunday", "Card"].map((method) => `<option value="${method}" ${order.paymentMethod === method ? "selected" : ""}>${method}</option>`).join("")}
+          </select></td>
+          <td><select data-paystatus="${escapeHtml(order.id)}" aria-label="Payment status for order ${escapeHtml(order.id)}">
+            ${["Pending", "Paid", "Unpaid", "Refunded"].map((status) => `<option value="${status}" ${order.paymentStatus === status ? "selected" : ""}>${status}</option>`).join("")}
+          </select></td>
+        </tr>
+      `).join("");
+      tbody.querySelectorAll("[data-paymethod]").forEach((select) => select.addEventListener("change", () => {
+        const order = state.orders.find((entry) => entry.id === select.dataset.paymethod);
+        if (order) { order.paymentMethod = select.value; saveState(state); showToast("Payment method updated."); }
+      }));
+      tbody.querySelectorAll("[data-paystatus]").forEach((select) => select.addEventListener("change", () => {
+        const order = state.orders.find((entry) => entry.id === select.dataset.paystatus);
+        if (order) { order.paymentStatus = select.value; saveState(state); showToast("Payment status updated."); }
+      }));
+    }
+
+    function renderAdmins() {
+      const select = document.getElementById("delegateSelect");
+      const admins = Array.isArray(state.admins) ? state.admins : [];
+      const registered = Object.values(state.customers).filter((customer) => customer && customer.phone && !admins.includes(customer.phone));
+      select.innerHTML = registered.length
+        ? registered.map((customer) => `<option value="${escapeHtml(customer.phone)}">${escapeHtml(customer.fullName)} — ${escapeHtml(formatPhone(customer.phone))}</option>`).join("")
+        : '<option value="">No eligible registered customers</option>';
+      const delegated = admins.filter((number) => number !== admins[0]);
+      const list = document.getElementById("adminList");
+      list.innerHTML = delegated.length
+        ? delegated.map((number) => `<div style="display:flex;align-items:center;gap:.75rem;margin-top:.5rem;"><span class="badge">${escapeHtml(formatPhone(number))}</span><button class="btn btn-danger btn-sm" type="button" data-revoke="${escapeHtml(number)}">Revoke</button></div>`).join("")
+        : '<p style="font-size:.88rem;color:var(--ink-muted);">0 of 2 delegated admin slots assigned.</p>';
+      list.querySelectorAll("[data-revoke]").forEach((button) => button.addEventListener("click", () => {
+        state.admins = state.admins.filter((admin) => admin !== button.dataset.revoke);
+        saveState(state);
+        renderAdmins();
+        showToast("Delegated admin access revoked on this device.");
+      }));
+    }
+
+    function bindControls() {
+      document.getElementById("saveStockBtn").addEventListener("click", () => {
+        state.products.forEach((product) => {
+          const priceInput = document.querySelector(`[data-price="${CSS.escape(product.id)}"]`);
+          const stockInput = document.querySelector(`[data-stock="${CSS.escape(product.id)}"]`);
+          const price = Number(priceInput?.value);
+          const stock = Number(stockInput?.value);
+          if (Number.isFinite(price) && price >= 0) product.pricePerLb = price;
+          if (Number.isInteger(stock) && stock >= 0) product.stock = stock;
+        });
+        state.settings.windowMode = document.getElementById("adminWindowMode").value;
+        state.settings.deliveryFee = Math.max(0, Number(document.getElementById("adminDeliveryFee").value) || 0);
+        state.settings.chickenEnabled = document.getElementById("adminChicken").value === "true";
+        saveState(state);
+        showToast("Stock and pricing saved in this browser.");
+      });
+
+      document.getElementById("grantAdminBtn").addEventListener("click", () => {
+        const target = document.getElementById("delegateSelect").value;
+        if (!target || !state.customers[target]) { showToast("Only registered customers can receive admin access."); return; }
+        if (state.admins.length >= 3) { showToast("Maximum of 2 additional admin phone numbers reached."); return; }
+        if (state.admins.includes(target)) { showToast("That customer already has admin access."); return; }
+        state.admins.push(target);
+        saveState(state);
+        renderAdmins();
+        showToast(`Granted admin access to ${formatPhone(target)} on this device.`);
+      });
+    }
+  </script>
+</body>
+</html>
