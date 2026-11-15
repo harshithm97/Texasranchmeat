@@ -4,6 +4,11 @@ const STATE_PATH = "data/ranch-state.json";
 const STORAGE_KEY = "trm_multipage_v1";
 const SESSION_KEY = "trm_active_phone";
 
+// Temporary browser-only test mode. Turn this off only after Supabase auth,
+// database policies, and server-side order operations are production-ready.
+export const APP_MODE = "test";
+export const isTestMode = () => APP_MODE === "test";
+
 // Browser storage is for this device only. Never put a GitHub token here:
 // credentials and customer records require a trusted server-side API.
 const PRIMARY_ADMIN = ["949", "295", "4650"].join("");
@@ -96,6 +101,7 @@ export function isAdminUser(state, phone = getSessionPhone()) {
 }
 
 export function isOrderWindowOpen(state) {
+  if (isTestMode()) return true;
   if (state.settings.windowMode === "open") return true;
   if (state.settings.windowMode === "closed") return false;
   const cstString = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
@@ -131,8 +137,10 @@ export function renderHeader(activePage) {
     </a>
   `;
 
+  const testBanner = `<div class="test-mode-banner" role="status"><strong>TEST MODE</strong> — Unverified access; test orders only. Data is stored in this browser and is not sent to Texas Ranch Meat for fulfillment.</div>`;
+
   if (!phone || !state.customers[phone]) {
-    header.innerHTML = brand;
+    header.innerHTML = `${brand}${testBanner}`;
     return;
   }
 
@@ -143,6 +151,7 @@ export function renderHeader(activePage) {
       <a href="profile.html" class="${activePage === "profile" ? "active" : ""}">Ranch Profile</a>
       ${admin ? `<a href="admin.html" class="admin-link ${activePage === "admin" ? "active" : ""}">Ranch Admin</a>` : ""}
     </nav>
+    ${testBanner}
   `;
 }
 
