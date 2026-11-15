@@ -1,0 +1,86 @@
+{
+  "updatedAt": "2026-11-15T04:49:15.965Z",
+  "ranchSettings": {
+    "windowMode": "auto",
+    "deliveryFee": 2.99,
+    "chickenVisible": true
+  },
+  "catalog": [
+    {
+      "id": "goat_chop_1",
+      "name": "Texas Boer Goat Chops (Prime Cut)",
+      "cat": "goat",
+      "pricePerLb": 14.99,
+      "estWeight": "2.5 lbs",
+      "stock": 18,
+      "desc": "Tender pasture-raised Texas goat loin chops. Rich flavor, lean, and hormone-free."
+    },
+    {
+      "id": "goat_cubes_2",
+      "name": "Ranch Curry Goat Cubes (Bone-In)",
+      "cat": "goat",
+      "pricePerLb": 11.99,
+      "estWeight": "3.0 lbs",
+      "stock": 24,
+      "desc": "Freshly cubed shoulder and leg meat with bone for hearty Texas stews & curries."
+    },
+    {
+      "id": "goat_shank_3",
+      "name": "Slow-Cooker Boer Goat Shanks",
+      "cat": "goat",
+      "pricePerLb": 10.5,
+      "estWeight": "3.5 lbs",
+      "stock": 14,
+      "desc": "Meaty shanks ideal for slow roasting, braising, or traditional Texas barbacoa."
+    },
+    {
+      "id": "goat_half_4",
+      "name": "Whole Pasture Boer Goat Half-Side",
+      "cat": "goat",
+      "pricePerLb": 9.99,
+      "estWeight": "18.0 lbs",
+      "stock": 6,
+      "desc": "Custom butcher-cut half-side packed fresh for family feasts and weekend gatherings."
+    },
+    {
+      "id": "chick_whole_5",
+      "name": "Free-Range Texas Heritage Chicken",
+      "cat": "chicken",
+      "pricePerLb": 6.99,
+      "estWeight": "4.0 lbs",
+      "stock": 25,
+      "desc": "Pasture-raised heritage whole chicken. Antibiotic-free and exceptionally juicy."
+    },
+    {
+      "id": "chick_wings_6",
+      "name": "Pasture Chicken Wings & Drumsticks",
+      "cat": "chicken",
+      "pricePerLb": 7.49,
+      "estWeight": "3.0 lbs",
+      "stock": 20,
+      "desc": "Farm-fresh wings and meaty drumsticks ready for Sunday grilling."
+    }
+  ],
+  "usersByPhone": {
+    "2145550142": {
+      "name": "Sarah Jenkins",
+      "phone": "2145550142",
+      "address": "4502 Swiss Ave, Dallas, TX 75014",
+      "orders": []
+    },
+    "9492954650": {
+      "name": "Ranch Operations",
+      "phone": "9492954650",
+      "address": "100 Ranchero Blvd, Dallas, TX 75001",
+      "orders": []
+    },
+    "4695550188": {
+      "name": "Marcus Vance",
+      "phone": "4695550188",
+      "address": "780 Oak Lawn Ave, Dallas, TX 75019",
+      "orders": []
+    }
+  },
+  "ordersDb": [],
+  "delegatedAdminDigits": []
+}
