@@ -92,6 +92,7 @@ declare
   v_item jsonb;
   v_product public.products%rowtype;
   v_qty integer;
+  v_product_id text;
   v_subtotal numeric(10,2) := 0;
   v_fee numeric(10,2) := 2.99;
   v_order_id uuid;
@@ -104,12 +105,19 @@ begin
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) = 0 then
     raise exception 'Your basket is empty.';
   end if;
+  if p_payment_method not in ('Zelle','Venmo','Cash on Sunday','Card') then
+    raise exception 'Unsupported payment method.';
+  end if;
 
-  for v_item in select * from jsonb_array_elements(p_items) loop
-    v_qty := (v_item->>'quantity')::integer;
-    if v_qty < 1 or v_qty > 30 then raise exception 'Invalid item quantity.'; end if;
+  -- Aggregate duplicate product IDs before checking/decrementing inventory.
+  for v_product_id, v_qty in
+    select item->>'product_id', sum((item->>'quantity')::integer)::integer
+    from jsonb_array_elements(p_items) item
+    group by item->>'product_id'
+  loop
+    if v_product_id is null or v_qty < 1 or v_qty > 30 then raise exception 'Invalid item quantity.'; end if;
     select * into v_product from public.products
-      where id = v_item->>'product_id' and active = true for update;
+      where id = v_product_id and active = true for update;
     if not found then raise exception 'A selected product is unavailable.'; end if;
     if v_product.stock < v_qty then raise exception 'Insufficient stock for %.', v_product.name; end if;
     v_subtotal := v_subtotal + (v_product.weight_lb * v_product.price_per_lb * v_qty);
@@ -120,9 +128,12 @@ begin
           v_profile.address || ', ' || v_profile.zip)
   returning id into v_order_id;
 
-  for v_item in select * from jsonb_array_elements(p_items) loop
-    v_qty := (v_item->>'quantity')::integer;
-    select * into v_product from public.products where id = v_item->>'product_id' for update;
+  for v_product_id, v_qty in
+    select item->>'product_id', sum((item->>'quantity')::integer)::integer
+    from jsonb_array_elements(p_items) item
+    group by item->>'product_id'
+  loop
+    select * into v_product from public.products where id = v_product_id for update;
     update public.products set stock = stock - v_qty, updated_at = now() where id = v_product.id;
     insert into public.order_items(order_id,product_id,product_name,quantity,weight_lb,price_per_lb,line_total)
     values (v_order_id,v_product.id,v_product.name,v_qty,v_product.weight_lb,v_product.price_per_lb,
