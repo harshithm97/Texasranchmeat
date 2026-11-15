@@ -20,19 +20,19 @@
     </section>
 
     <!-- Registration is open while WhatsApp verification is being prepared. -->
-    <section id="authSection" class="card auth-gate-card">
+    <section id="authSection" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle" style="display:none"><div class="card auth-gate-card auth-modal">
       <span class="badge">Customer registration open</span>
-      <h2 style="margin-top:.8rem">Join the Texas Ranch Meat family</h2>
-      <p style="margin-bottom:1.2rem;color:var(--ink-muted);">Register your delivery details now. Phone verification and WhatsApp updates will be enabled when our WhatsApp Business number is ready.</p>
+      <button type="button" class="modal-close" id="closeAuth" aria-label="Close login">×</button><h2 id="authTitle" style="margin-top:.8rem">Welcome to Texas Ranch Meat</h2>
+      <p style="margin-bottom:1.2rem;color:var(--ink-muted);">Sign in on this device to continue shopping. WhatsApp account verification will be enabled after our WhatsApp Business setup is complete. New customers can register below.</p>
       <form id="registerForm" style="max-width:480px;">
         <div class="form-group"><label for="regName">Full Name</label><input type="text" id="regName" autocomplete="name" required /></div>
         <div class="form-group"><label for="regPhone">Mobile Phone Number</label><input type="tel" id="regPhone" placeholder="(214) 555-0199" autocomplete="tel" inputmode="tel" required /></div>
         <div class="form-group"><label for="regAddress">Street Address</label><input type="text" id="regAddress" autocomplete="street-address" required /></div>
         <div class="form-group"><label for="regZip">Texas ZIP Code</label><input type="text" id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required /></div>
-        <button type="submit" class="btn btn-sage">Create my customer profile</button>
+        <button type="submit" class="btn btn-sage">Continue & create profile</button>
       </form>
       <p class="registration-note" style="margin-top:1rem;font-size:.84rem;color:var(--ink-muted);">Your phone number is collected for future WhatsApp verification. It is not verified at this stage.</p>
-    </section>
+    </div></section>
 
     <!-- PROTECTED STOREFRONT CONTENT (Rendered ONLY after successful login) -->
     <div id="protectedStoreContainer" class="protected-content" style="display: none;">
@@ -77,15 +77,13 @@
         showAuth();
       } catch (error) { showToast(error.message || "Unable to connect."); showAuth(); }
     }
-    function showAuth() {
-      document.getElementById("authSection").style.display = "block";
-      document.getElementById("protectedStoreContainer").style.display = "none";
-    }
+    function showAuth() { document.getElementById("authSection").style.display="flex"; document.getElementById("protectedStoreContainer").style.display="none"; renderPublicHeader(); }
+    function renderPublicHeader() { document.getElementById("siteHeader").innerHTML = `<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo" /><span>Texas Ranch Meat</span></a><button type="button" id="openLogin" class="btn btn-sage">Login</button>`; document.getElementById("openLogin").addEventListener("click",()=>{document.getElementById("authSection").style.display="flex";document.getElementById("regName").focus();}); }
     async function loadCustomer() {
       renderHeader();
       profile = await getProfile(user.id);
       if (!profile || !profile.full_name || !profile.address || !profile.zip) {
-        document.getElementById("authSection").style.display = "block";
+        document.getElementById("authSection").style.display = "flex";
         document.getElementById("registerForm").style.display = "block";
         document.getElementById("regPhone").value = profile?.phone || "";
         document.getElementById("regName").value = profile?.full_name || "";
@@ -99,9 +97,9 @@
     }
     function renderHeader() {
       const header = document.getElementById("siteHeader");
-      header.innerHTML = `<a href="index.html" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo" /><span>Texas Ranch Meat</span></a>
+      header.innerHTML = `<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo" /><span>Texas Ranch Meat</span></a>
         <nav class="ranch-nav" aria-label="Main navigation">
-          <a href="index.html" class="active">Storefront</a><a href="orders.html">My Orders</a><a href="profile.html">Ranch Profile</a>
+          <a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a>
           <button type="button" id="headerSignOut" class="btn btn-secondary btn-sm">Sign out</button>
         </nav>`;
       document.getElementById("headerSignOut").addEventListener("click", async () => {
@@ -178,10 +176,12 @@
         const { data, error } = await supabase.rpc("place_order", { p_items: cart.map(x => ({product_id:x.id,quantity:x.qty})), p_payment_method: document.getElementById("paymentMethod").value });
         if (error) throw error;
         cart = []; showToast("Order received. Order #" + String(data).slice(0,8));
-        window.location.href = "orders.html";
+        window.location.href = "/orders/";
       } catch (error) { showToast(error.message || "Order could not be placed."); button.disabled = false; }
     });
     function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    document.getElementById("closeAuth").addEventListener("click",()=>{if(!user)document.getElementById("authSection").style.display="none";});
+    document.getElementById("authSection").addEventListener("click",e=>{if(e.target.id==="authSection"&&!user)e.currentTarget.style.display="none";});
     init();
   </script>
 </body>
