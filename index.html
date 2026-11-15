@@ -21,8 +21,8 @@
 
     <!-- AUTHENTICATION GATE (Shown ONLY when logged out) -->
     <section id="authSection" class="card auth-gate-card">
-      <h2>Sign In with Your Phone Number</h2>
-      <p style="margin-bottom:1rem; color:var(--ink-muted);">Enter your 10-digit mobile number to access the Texas Ranch Meat storefront and weekly delivery orders.</p>
+      <h2>Enter Test Storefront</h2>
+      <p style="margin-bottom:1rem; color:var(--ink-muted);">Use any 10-digit number to create a local test profile. No phone verification is performed in test mode.</p>
       
       <form id="phoneLoginForm" style="max-width:420px;">
         <div class="form-group">
@@ -46,7 +46,7 @@
           <label for="regZip">Texas ZIP Code (75001–76299)</label>
           <input type="text" id="regZip" maxlength="5" placeholder="75038" required />
         </div>
-        <button type="submit" class="btn btn-sage">Save Profile &amp; Enter Storefront</button>
+        <button type="submit" class="btn btn-sage">Create Test Profile</button>
       </form>
     </section>
 
@@ -71,7 +71,7 @@
             <option value="Card">Card</option>
           </select>
         </div>
-        <button id="placeOrderBtn" class="btn btn-sage">Place Sunday Delivery Order</button>
+        <button id="placeOrderBtn" class="btn btn-sage">Place Test Order</button>
       </section>
     </div>
   </main>
@@ -278,7 +278,8 @@
       const subtotal = cart.reduce((acc, i) => acc + i.weightLb * i.pricePerLb * i.qty, 0);
       const deliveryFee = Number(state.settings.deliveryFee);
       const order = {
-        id: "TRM-" + Math.floor(100000 + Math.random() * 900000),
+        id: "TEST-TRM-" + Math.floor(100000 + Math.random() * 900000),
+        mode: "TEST",
         phone,
         customerName: customer.fullName,
         address: `${customer.address} (${customer.zip})`,
@@ -295,7 +296,7 @@
       state.orders.unshift(order);
       saveState(state);
       cart = [];
-      showToast(`Order ${order.id} placed! Redirecting to Sunday Order Tracker...`);
+      showToast(`Test order ${order.id} saved on this device only.`);
       setTimeout(() => { window.location.href = "orders.html"; }, 900);
     });
 

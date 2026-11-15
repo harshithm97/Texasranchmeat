@@ -12,7 +12,7 @@
   <main class="container">
     <section class="card">
       <h1>My Sunday Delivery Orders</h1>
-      <p style="color:var(--ink-muted); margin-bottom:1rem;">Track your live Sunday delivery progress across the Dallas 30-mile zone.</p>
+      <p style="color:var(--ink-muted); margin-bottom:1rem;">Track test orders saved in this browser. Test orders are not transmitted for fulfillment.</p>
       <div id="ordersContainer"></div>
     </section>
   </main>
@@ -57,7 +57,7 @@
         return `
           <div class="card" style="background:var(--bg);">
             <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-              <strong>Order #${escapeHtml(order.id)}</strong>
+              <strong>${order.mode === "TEST" ? "TEST ORDER" : "Order"} #${escapeHtml(order.id)}</strong>
               <span class="badge">${escapeHtml(order.paymentMethod)} • ${escapeHtml(order.paymentStatus)}</span>
             </div>
             <p style="margin:0.4rem 0; font-size:0.9rem;"><strong>Items:</strong> ${itemsText}</p>
