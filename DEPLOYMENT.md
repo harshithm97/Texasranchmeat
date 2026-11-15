@@ -1,28 +1,45 @@
-# Vercel deployment and production-readiness
+# Texas Ranch Meat — hosting and production rollout
 
-## Current status
-This branch adds the initial Vercel static-hosting configuration only. It is **not approved for production traffic** until the blockers below are closed.
+## Hosting architecture
 
-## Import into Vercel
-1. Connect the Vercel account to GitHub and import `harshithm97/Texasranchmeat`.
-2. Select branch `production/vercel-migration` for the initial preview deployment.
-3. Framework preset: Other. Root directory: `./`. Build command: leave empty. Output directory: `.`.
-4. Do not promote this preview to production yet.
-5. Configure the production branch only after the secure backend and migration are complete.
+- **Domain:** GoDaddy manages `texasranchmeat.com` only. No GoDaddy hosting plan is needed.
+- **Frontend hosting:** GitHub Pages.
+- **Database and authentication:** Supabase (Postgres, Auth, and Row Level Security).
+- **Source control and deployment:** this GitHub repository.
 
-## Production blockers
-- Replace phone-number-only login with verified authentication.
-- Move customer, order, inventory, and admin data into a shared database and server-side APIs.
-- Enforce role checks in server/database policies; browser-side checks are not security controls.
-- Audit `data/ranch-state.json` and public Git history for sensitive records before any public release. Preserve an authorized private backup before cleanup.
-- Replace public raw-GitHub state synchronization.
-- Add checkout/payment provider integration and verify payment status from trusted webhooks; current payment choices are labels only.
-- Restore or replace the referenced `assets/logo.jpg` asset.
-- Add tests, monitoring, backups, and operational recovery procedures.
-- Disable GitHub Pages workflows only after Vercel production is verified.
+## Current rollout status
 
-## Environment variables
-No production secrets are required for this static preview. Never commit secrets or customer data. When backend services are connected, store credentials in Vercel Environment Variables and use separate Preview and Production scopes. Never expose service-role keys in browser code.
+This repository is **not production-ready**. Do not enable public ordering, collect customer information, or dispatch the Pages workflow until the blockers below are closed.
 
-## Rollout
-Use preview deployments for QA. Promote only after security review, migration verification, backup/restore test, order lifecycle tests, and owner sign-off.
+1. Audit the 1.3 MB `data/ranch-state.json` file and public Git history. Determine whether it contains customer, order, phone, address, inventory, or other private business records. Preserve an authorized private backup before removing any sensitive data. Removing the current file alone does not remove it from Git history.
+2. Replace browser-only phone login with verified Supabase Auth.
+3. Move customer, order, inventory, and admin data into Supabase. Enforce access with Row Level Security and server-side/Edge Function checks. Never put a Supabase service-role key in browser code.
+4. Remove browser-side admin authorization and public raw-GitHub state synchronization.
+5. Verify order creation, status changes, inventory updates, and admin permissions using separate customer/admin accounts.
+6. Add payment processing only through a provider integration with trusted server-side webhook verification. Existing payment labels are not payment processing.
+7. Restore or replace the referenced `assets/logo.jpg` asset; the current repository tree does not contain an `assets` directory.
+8. Add automated tests, monitoring, backups, and a tested recovery procedure.
+
+## GitHub Pages
+
+The static Pages workflow is intentionally **manual-only** while the privacy and backend blockers remain open. It publishes only the HTML, CSS, JavaScript, and optional assets—not the repository's `data/` directory or deployment documents.
+
+After the blockers are resolved:
+1. In GitHub, open **Settings → Pages** for this repository.
+2. Select **GitHub Actions** as the build and deployment source.
+3. Set the custom domain to `texasranchmeat.com` and complete GitHub's domain verification.
+4. Confirm the Pages custom domain is configured before changing DNS.
+5. Run the Pages workflow manually and verify the site and HTTPS before directing customers to it.
+
+## GoDaddy DNS
+
+Only after GitHub Pages accepts the custom domain and verification is complete, manage DNS in GoDaddy (provided the domain uses GoDaddy nameservers):
+
+- Apex `@` A records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+- `www` CNAME: `harshithm97.github.io`.
+
+Do not delete or alter MX, TXT, or other existing records; they may support email or domain verification. DNS propagation can take time. Enable HTTPS in GitHub Pages after DNS is verified.
+
+## Supabase setup still required
+
+Create a Supabase project, then configure the schema, Auth providers, Row Level Security policies, and any Edge Functions. Store only the public anon/publishable key in the frontend; keep service-role credentials server-side. No Supabase project credentials have been provided or configured yet.
