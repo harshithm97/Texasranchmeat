@@ -1,8 +1,11 @@
 name: Deploy static site to GitHub Pages
 
-# Deliberately manual until the public ranch-state data is audited and the
-# Supabase-backed authentication/order flow is ready for production.
+# Deploy the explicitly test-mode storefront after changes reach main.
+# Real customer ordering remains disabled until Supabase auth, RLS, and admin
+# authorization are implemented and reviewed.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
