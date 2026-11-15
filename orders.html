@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Sunday Orders | Texas Ranch Meat</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header id="siteHeader" class="ranch-header"></header>
+
+  <main class="container">
+    <section class="card">
+      <h1>My Sunday Delivery Orders</h1>
+      <p style="color:var(--ink-muted); margin-bottom:1rem;">Track your live Sunday delivery progress across the Dallas 30-mile zone.</p>
+      <div id="ordersContainer"></div>
+    </section>
+  </main>
+
+  <footer class="ranch-footer">
+    Texas Ranch Meat • Sunday-Only Delivery • Dallas 30-Mile Radius
+  </footer>
+
+  <script type="module">
+    import {
+      pullRemoteState, getSessionPhone, ORDER_STAGES, renderHeader
+    } from "./js/store.js";
+
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+    })[char]);
+
+    async function init() {
+      const phone = getSessionPhone();
+      if (!phone) {
+        window.location.replace("index.html");
+        return;
+      }
+      renderHeader("orders");
+      const state = await pullRemoteState();
+      const myOrders = state.orders.filter((order) => order.phone === phone);
+      const container = document.getElementById("ordersContainer");
+
+      if (!myOrders.length) {
+        container.innerHTML = `<p>No orders yet. <a href="index.html">Visit the Storefront</a> to place your weekend order.</p>`;
+        return;
+      }
+
+      container.innerHTML = myOrders.map((order) => {
+        const currentIdx = ORDER_STAGES.indexOf(order.stage);
+        const stepsHtml = ORDER_STAGES.map((stage, idx) => `
+          <div class="tracker-step ${idx <= currentIdx ? "done" : ""}">${idx + 1}. ${escapeHtml(stage)}</div>
+        `).join("");
+
+        const itemsText = (Array.isArray(order.items) ? order.items : [])
+          .map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.qty)}`).join(", ");
+        return `
+          <div class="card" style="background:var(--bg);">
+            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+              <strong>Order #${escapeHtml(order.id)}</strong>
+              <span class="badge">${escapeHtml(order.paymentMethod)} • ${escapeHtml(order.paymentStatus)}</span>
+            </div>
+            <p style="margin:0.4rem 0; font-size:0.9rem;"><strong>Items:</strong> ${itemsText}</p>
+            <p style="font-size:0.9rem;"><strong>Total:</strong> $${Number(order.total || 0).toFixed(2)} • <strong>Deliver to:</strong> ${escapeHtml(order.address)}</p>
+            <div class="tracker-steps">${stepsHtml}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    init();
+  </script>
+</body>
+</html>
