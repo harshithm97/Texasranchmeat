@@ -1,11 +1,7 @@
-const REPO_OWNER = "harshithm97";
-const REPO_NAME = "Texasranchmeat";
-const STATE_PATH = "data/ranch-state.json";
+import { fetchSharedCatalog } from "./api.js";
+
 const STORAGE_KEY = "trm_multipage_v1";
 const SESSION_KEY = "trm_active_phone";
-
-// Browser storage is for this device only. Never put a GitHub token here:
-// credentials and customer records require a trusted server-side API.
 const PRIMARY_ADMIN = ["949", "295", "4650"].join("");
 const memoryStore = {};
 
@@ -76,6 +72,8 @@ export function loadState() {
   }
 }
 
+// Customer profiles, orders, and the browser session are still local-only.
+// Products and public settings are always refreshed from the shared API.
 export function saveState(state) {
   safeStorage.set(STORAGE_KEY, JSON.stringify(state));
 }
@@ -146,23 +144,12 @@ export function renderHeader(activePage) {
   `;
 }
 
-// Read only the public catalog/settings file. Customer and order data remain
-// local; syncing private records requires a protected backend, not GitHub Pages.
 export async function pullRemoteState() {
-  try {
-    const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${STATE_PATH}?t=${Date.now()}`;
-    const res = await fetch(url);
-    if (!res.ok) return loadState();
-    const remote = await res.json();
-    const local = loadState();
-    const merged = {
-      ...local,
-      settings: remote.settings || local.settings,
-      products: Array.isArray(remote.products) ? remote.products : local.products
-    };
-    saveState(merged);
-    return merged;
-  } catch {
-    return loadState();
-  }
+  const local = loadState();
+  const catalog = await fetchSharedCatalog();
+  return {
+    ...local,
+    settings: catalog.settings,
+    products: catalog.products
+  };
 }
