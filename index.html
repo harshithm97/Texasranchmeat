@@ -3,7 +3,7 @@
 <body>
 <header id="siteHeader" class="ranch-header"></header>
 <main class="container">
-<section class="hero-banner"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="hero-logo"><div class="hero-content"><h1>Fresh Goat & Chicken, Delivered Sundays</h1><p>Fresh ranch favorites, delivered to your door. Orders open Friday through Saturday for Sunday delivery within our Dallas service area.</p><div class="badge-row" id="statusBadges"></div></div></section>
+<section class="hero-banner"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="hero-logo"><div class="hero-content"><h1>Fresh Goat & Chicken, Delivered Sundays</h1><p>Fresh ranch favorites, delivered to your door. Orders open Friday through Saturday for Sunday delivery within our Dallas service area.</p><div class="badge-row" id="statusBadges"></div></div></section>
 <section id="authSection" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle">
  <div class="card auth-gate-card auth-modal">
   <button type="button" class="modal-close" id="closeAuth" aria-label="Close login">×</button>
@@ -24,7 +24,7 @@
 <div id="protectedStoreContainer" class="protected-content" hidden>
  <section class="card"><h2>Shop Our Meat</h2><p style="color:var(--ink-muted)">Choose from our two categories: goat and chicken.</p><div id="productGrid" style="display:grid;gap:1rem;margin-top:1rem"></div></section>
  <section class="card"><h2>Your Sunday Delivery Basket</h2><div id="cartItems" style="margin:.75rem 0"></div><div id="cartSummary" style="font-weight:700;margin-bottom:1rem"></div><div class="form-group" style="max-width:320px"><label for="paymentMethod">Preferred payment method</label><select id="paymentMethod"><option>Zelle</option><option>Venmo</option><option>Cash on Sunday</option><option>Card</option></select></div><button id="placeOrderBtn" class="btn btn-sage">Place order</button></section>
-</div></main><footer class="ranch-footer"><img src="assets/logo.jpg" alt="Texas Ranch Meat logo" class="footer-logo"><div>© 2026 Texas Ranch Meat. All rights reserved.</div><div><a href="/terms/">Terms &amp; Conditions</a><span aria-hidden="true"> • </span><a href="/privacy/">Privacy Policy</a></div><div>Customer / Admin contact: <a href="tel:+19492954650">949-295-4650</a></div></footer>
+</div></main><footer class="ranch-footer"><img src="assets/logo.svg" alt="Texas Ranch Meat logo" class="footer-logo"><div>© 2026 Texas Ranch Meat. All rights reserved.</div><div><a href="/terms/">Terms &amp; Conditions</a><span aria-hidden="true"> • </span><a href="/privacy/">Privacy Policy</a></div><div>Customer / Admin contact: <a href="tel:+19492954650">949-295-4650</a></div></footer>
 <script type="module">
 import {supabase,requireUser,getProfile,saveProfile,signOut} from "./js/supabase.js";
 import {isDallas30MileZip,showToast} from "./js/store.js";
@@ -35,8 +35,8 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 function message(t){$("authMessage").textContent=t;}\nasync function recordConsent(){const {error}=await supabase.from("customer_consents").insert({user_id:user.id,phone,terms_version:"2026-11-15",privacy_version:"2026-11-15"});if(error)throw error;}
 function openAuth(){ $("authSection").hidden=false; $("protectedStoreContainer").hidden=true; $("phoneInput").focus(); }
 function closeAuth(){ $("authSection").hidden=true; $("protectedStoreContainer").hidden=true; $("profileCreateForm").reset(); $("profileCreateForm").hidden=true; $("phoneForm").hidden=false; message("Login closed. Sign in to access the customer store."); }
-function publicHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><button id="openLogin" class="btn btn-sage">Login</button>'; $("openLogin").onclick=openAuth; }
-function customerHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><nav class="ranch-nav"><a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></nav>'; $("signOut").onclick=async()=>{await signOut();location.replace("/");}; }
+function publicHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><button id="openLogin" class="btn btn-sage">Login</button>'; $("openLogin").onclick=openAuth; }
+function customerHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><nav class="ranch-nav"><a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></nav>'; $("signOut").onclick=async()=>{await signOut();location.replace("/");}; }
 async function init(){try{user=await requireUser();publicHeader();if(user){profile=await getProfile(user.id);if(profile?.phone){$("phoneInput").value=profile.phone;} }openAuth();}catch(e){message(e.message);openAuth();}}
 $("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=normalizePhone($("phoneInput").value);if(!/^\\+1\\d{10}$/.test(phone)){message("Enter a valid 10-digit US phone number.");return;}
  const btn=e.submitter;btn.disabled=true;message("");
