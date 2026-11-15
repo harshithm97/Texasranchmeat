@@ -196,3 +196,14 @@ td input, td select { min-width:95px; padding:.55rem .65rem; }
 .auth-modal-backdrop{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(20,29,21,.62);backdrop-filter:blur(7px);animation:fadeIn .18s ease}.auth-modal{position:relative;width:min(100%,620px);max-height:min(90vh,850px);overflow:auto;margin:0;box-shadow:0 28px 90px rgba(0,0,0,.28);animation:modalIn .22s ease}.modal-close{position:absolute;right:1rem;top:.8rem;width:42px;height:42px;border:0;border-radius:50%;background:var(--surface-alt);color:var(--ink);font-size:1.7rem;cursor:pointer}.ranch-nav a,.ranch-nav button{white-space:nowrap}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}@media(max-width:760px){.ranch-header{position:sticky;top:0;z-index:100;min-height:68px;flex-wrap:nowrap}.ranch-nav{width:auto;flex:1;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;scrollbar-width:none}.ranch-nav::-webkit-scrollbar{display:none}.ranch-nav a{flex:0 0 auto}.ranch-nav .btn{margin-left:0;flex:0 0 auto}.auth-modal-backdrop{align-items:flex-end;padding:.5rem}.auth-modal{max-height:92vh;border-radius:20px 20px 14px 14px}.auth-modal-backdrop .auth-gate-card{margin-bottom:0}}@media(prefers-reduced-motion:reduce){.auth-modal-backdrop,.auth-modal{animation:none}}
 /* Respect hidden state on modal/forms despite component display rules. */
 [hidden], #authSection[hidden] { display:none !important; }
+
+/* Consent, legal page, and branded footer */
+.consent-row{display:flex;align-items:flex-start;gap:.7rem;margin:1rem 0;padding:.85rem;border:1px solid var(--border);border-radius:12px;background:var(--surface-alt);font-size:.88rem;line-height:1.5}
+.consent-row input{width:18px;height:18px;flex:0 0 18px;margin-top:.15rem;accent-color:var(--leather)}
+.consent-row a{color:var(--leather);font-weight:700;text-decoration:underline}
+.footer-logo{display:block;width:68px;height:68px;object-fit:contain;margin:0 auto .7rem;border-radius:10px;background:#fff;padding:4px}
+.ranch-footer{display:grid;gap:.45rem;justify-items:center}
+.legal-card{max-width:900px;margin:0 auto;line-height:1.7}
+.legal-card h2{margin:1.5rem 0 .45rem;color:var(--leather);font-family:Georgia,serif}
+.legal-card p,.legal-card li{color:var(--ink-muted)}
+@media(max-width:600px){.consent-row{font-size:.82rem}.footer-logo{width:58px;height:58px}}
