@@ -19,34 +19,24 @@
       </div>
     </section>
 
-    <!-- AUTHENTICATION GATE (Shown ONLY when logged out) -->
+    <!-- Supabase phone OTP authentication -->
     <section id="authSection" class="card auth-gate-card">
-      <h2>Enter Test Storefront</h2>
-      <p style="margin-bottom:1rem; color:var(--ink-muted);">Use any 10-digit number to create a local test profile. No phone verification is performed in test mode.</p>
-      
+      <h2>Sign in to Texas Ranch Meat</h2>
+      <p style="margin-bottom:1rem;color:var(--ink-muted);">Verify your phone number to create or access your customer account.</p>
       <form id="phoneLoginForm" style="max-width:420px;">
-        <div class="form-group">
-          <label for="loginPhone">Phone Number</label>
-          <input type="tel" id="loginPhone" placeholder="(214) 555-0199" required autofocus />
-        </div>
-        <button type="submit" class="btn">Continue</button>
+        <div class="form-group"><label for="loginPhone">Mobile Phone Number</label><input type="tel" id="loginPhone" placeholder="+1 214 555 0199" autocomplete="tel" required /></div>
+        <button type="submit" class="btn">Send verification code</button>
       </form>
-
-      <form id="registerForm" style="display:none; max-width:480px; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border);">
-        <h3>Complete Your Dallas Delivery Profile</h3>
-        <div class="form-group">
-          <label for="regName">Full Name</label>
-          <input type="text" id="regName" placeholder="Full Name" required />
-        </div>
-        <div class="form-group">
-          <label for="regAddress">Street Address &amp; City (Dallas 30-Mile Radius)</label>
-          <input type="text" id="regAddress" placeholder="1234 Ranch Rd, Irving, TX" required />
-        </div>
-        <div class="form-group">
-          <label for="regZip">Texas ZIP Code (75001–76299)</label>
-          <input type="text" id="regZip" maxlength="5" placeholder="75038" required />
-        </div>
-        <button type="submit" class="btn btn-sage">Create Test Profile</button>
+      <form id="otpForm" style="display:none;max-width:420px;margin-top:1rem;">
+        <div class="form-group"><label for="otpCode">6-digit verification code</label><input type="text" id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required /></div>
+        <button type="submit" class="btn btn-sage">Verify &amp; continue</button>
+      </form>
+      <form id="registerForm" style="display:none;max-width:480px;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <h3>Complete Your Delivery Profile</h3>
+        <div class="form-group"><label for="regName">Full Name</label><input type="text" id="regName" required /></div>
+        <div class="form-group"><label for="regAddress">Street Address &amp; City</label><input type="text" id="regAddress" required /></div>
+        <div class="form-group"><label for="regZip">Texas ZIP Code</label><input type="text" id="regZip" maxlength="5" required /></div>
+        <button type="submit" class="btn btn-sage">Save customer profile</button>
       </form>
     </section>
 
@@ -71,7 +61,7 @@
             <option value="Card">Card</option>
           </select>
         </div>
-        <button id="placeOrderBtn" class="btn btn-sage">Place Test Order</button>
+        <button id="placeOrderBtn" class="btn btn-sage">Place Order</button>
       </section>
     </div>
   </main>
@@ -81,225 +71,123 @@
   </footer>
 
   <script type="module">
-    import {
-      loadState, saveState, pullRemoteState, getSessionPhone, setSessionPhone,
-      normalizePhone, isDallas30MileZip, isOrderWindowOpen, renderHeader, showToast
-    } from "./js/store.js";
+    import { supabase, requireUser, getProfile, saveProfile, signOut } from "./js/supabase.js";
+    import { isDallas30MileZip, showToast, isOrderWindowOpen } from "./js/store.js";
 
-    let state = loadState();
-    let cart = [];
-    let pendingPhone = "";
-
+    let user = null, profile = null, products = [], cart = [], pendingPhone = "";
+    const money = n => "$" + Number(n || 0).toFixed(2);
     async function init() {
-      state = await pullRemoteState();
-      checkAuthView();
+      try {
+        user = await requireUser();
+        if (user) { await loadCustomer(); return; }
+        showAuth();
+      } catch (error) { showToast(error.message || "Unable to connect."); showAuth(); }
     }
-
-    function checkAuthView() {
-      const phone = getSessionPhone();
-      const authSec = document.getElementById("authSection");
-      const storeSec = document.getElementById("protectedStoreContainer");
-
-      if (!phone || !state.customers[phone]) {
-        authSec.style.display = "block";
-        storeSec.style.display = "none";
-        renderHeader("store");
-      } else {
-        authSec.style.display = "none";
-        storeSec.style.display = "block";
-        renderHeader("store");
-        renderBadges();
-        renderProducts();
-        renderCart();
-      }
+    function showAuth() {
+      document.getElementById("authSection").style.display = "block";
+      document.getElementById("protectedStoreContainer").style.display = "none";
     }
-
-    function renderBadges() {
-      const open = isOrderWindowOpen(state);
-      document.getElementById("statusBadges").innerHTML = `
-        <span class="badge ${open ? "open" : "closed"}">
-          ${open ? "Order Window OPEN (Closes Saturday Midnight)" : "Order Window CLOSED (Opens Friday 12:00 AM)"}
-        </span>
-        <span class="badge">Flat $${Number(state.settings.deliveryFee).toFixed(2)} Sunday Dallas Delivery</span>
-      `;
-    }
-
-    document.getElementById("phoneLoginForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const phone = normalizePhone(document.getElementById("loginPhone").value);
-      if (phone.length !== 10) {
-        showToast("Please enter a valid 10-digit phone number.");
+    async function loadCustomer() {
+      renderHeader();
+      profile = await getProfile(user.id);
+      if (!profile || !profile.full_name || !profile.address || !profile.zip) {
+        document.getElementById("authSection").style.display = "block";
+        document.getElementById("phoneLoginForm").style.display = "none";
+        document.getElementById("otpForm").style.display = "none";
+        document.getElementById("registerForm").style.display = "block";
+        document.getElementById("regName").value = profile?.full_name || "";
+        document.getElementById("regAddress").value = profile?.address || "";
+        document.getElementById("regZip").value = profile?.zip || "";
         return;
       }
-      if (state.customers[phone]) {
-        setSessionPhone(phone);
-        checkAuthView();
-        showToast(`Welcome back, ${state.customers[phone].fullName}!`);
-      } else {
-        pendingPhone = phone;
-        document.getElementById("registerForm").style.display = "block";
-        showToast("New phone number — complete your Dallas delivery address below.");
-      }
-    });
-
-    document.getElementById("registerForm").addEventListener("submit", (e) => {
+      document.getElementById("authSection").style.display = "none";
+      document.getElementById("protectedStoreContainer").style.display = "block";
+      await loadProducts();
+    }
+    function renderHeader() {
+      const header = document.getElementById("siteHeader");
+      header.innerHTML = `<a href="index.html" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo" /><span>Texas Ranch Meat</span></a>
+        <nav class="ranch-nav" aria-label="Main navigation">
+          <a href="index.html" class="active">Storefront</a><a href="orders.html">My Orders</a><a href="profile.html">Ranch Profile</a>
+          <button type="button" id="headerSignOut" class="btn btn-secondary btn-sm">Sign out</button>
+        </nav>`;
+      document.getElementById("headerSignOut").addEventListener("click", async () => {
+        await signOut(); window.location.href = "index.html";
+      });
+    }
+    async function loadProducts() {
+      const { data, error } = await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active", true).order("category").order("name");
+      if (error) throw error;
+      products = data || [];
+      document.getElementById("statusBadges").innerHTML = '<span class="badge">Sunday delivery • Dallas service area</span>';
+      renderProducts(); renderCart();
+    }
+    document.getElementById("phoneLoginForm").addEventListener("submit", async e => {
       e.preventDefault();
-      const fullName = document.getElementById("regName").value.trim();
+      const raw = document.getElementById("loginPhone").value.trim();
+      pendingPhone = raw.startsWith("+") ? raw : "+1" + raw.replace(/\D/g, "");
+      if (!/^\+1\d{10}$/.test(pendingPhone)) { showToast("Enter a valid US phone number including area code."); return; }
+      const { error } = await supabase.auth.signInWithOtp({ phone: pendingPhone });
+      if (error) { showToast(error.message); return; }
+      document.getElementById("otpForm").style.display = "block";
+      showToast("Verification code sent by your configured Supabase SMS provider.");
+    });
+    document.getElementById("otpForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const token = document.getElementById("otpCode").value.trim();
+      const { data, error } = await supabase.auth.verifyOtp({ phone: pendingPhone, token, type: "sms" });
+      if (error) { showToast(error.message); return; }
+      user = data.user;
+      await loadCustomer();
+    });
+    document.getElementById("registerForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const full_name = document.getElementById("regName").value.trim();
       const address = document.getElementById("regAddress").value.trim();
       const zip = document.getElementById("regZip").value.trim();
-
-      if (!isDallas30MileZip(zip)) {
-        showToast("Sorry, we only deliver within a 30-mile radius of Dallas (ZIP 75001–76299).");
-        return;
-      }
-
-      state.customers[pendingPhone] = {
-        phone: pendingPhone,
-        fullName,
-        address,
-        zip,
-        createdAt: new Date().toISOString()
-      };
-      saveState(state);
-      setSessionPhone(pendingPhone);
-      checkAuthView();
-      showToast("Ranch profile saved!");
+      if (!isDallas30MileZip(zip)) { showToast("Please enter a ZIP code in the current Dallas service area."); return; }
+      try { profile = await saveProfile({ id:user.id, phone:user.phone, full_name, address, zip }); await loadCustomer(); showToast("Customer profile saved."); }
+      catch (error) { showToast(error.message); }
     });
-
     function renderProducts() {
-      const open = isOrderWindowOpen(state);
       const grid = document.getElementById("productGrid");
-      const categories = [
-        { id: "goat", title: "Goat" },
-        { id: "chicken", title: "Chicken" }
-      ];
-
-      grid.innerHTML = categories.map(category => {
-        const products = state.products.filter(p => p.category === category.id);
-        if (!products.length) return "";
-        const cards = products.map(p => {
-          const packPrice = (p.weightLb * p.pricePerLb).toFixed(2);
-          const soldOut = p.stock <= 0;
-          return `
-            <article class="card" style="margin:0;">
-              <div style="display:flex; justify-content:space-between; align-items:start; gap:.75rem;">
-                <h3>${p.name}</h3>
-                <span class="badge">${soldOut ? "Sold Out" : "In Stock"}</span>
-              </div>
-              <p style="color:var(--ink-muted); margin:.4rem 0;">
-                ${p.weightLb} lb pack • <strong>${Number(p.pricePerLb).toFixed(2)}/lb</strong> (${packPrice}/pack)
-              </p>
-              <button class="btn btn-sm" data-add="${p.id}" ${!open || soldOut ? "disabled" : ""}>
-                ${soldOut ? "Sold Out" : open ? "Add to Basket" : "Opens Friday"}
-              </button>
-            </article>
-          `;
-        }).join("");
-        return `<section aria-labelledby="category-${category.id}">
-          <h3 id="category-${category.id}">${category.title}</h3>
-          <div class="grid-2">${cards}</div>
-        </section>`;
+      const categories = [{id:"goat",title:"Goat"},{id:"chicken",title:"Chicken"}];
+      grid.innerHTML = categories.map(c => {
+        const rows = products.filter(p => p.category === c.id);
+        if (!rows.length) return "";
+        return `<section><h3>${c.title}</h3><div class="grid-2">${rows.map(p => {
+          const sold = p.stock <= 0;
+          return `<article class="card" style="margin:0"><div style="display:flex;justify-content:space-between;gap:.75rem"><h3>${escapeHtml(p.name)}</h3><span class="badge">${sold?"Sold out":"In stock"}</span></div>
+            <p style="color:var(--ink-muted);margin:.4rem 0">${p.weight_lb} lb pack • ${money(p.price_per_lb)}/lb • ${money(p.weight_lb*p.price_per_lb)}/pack</p>
+            <button class="btn btn-sm" data-add="${p.id}" ${sold?"disabled":""}>Add to basket</button></article>`;
+        }).join("")}</div></section>`;
       }).join("");
-
-      grid.querySelectorAll("[data-add]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-add");
-          const prod = state.products.find(x => x.id === id);
-          const inCart = cart.find(x => x.id === id);
-          const currentQty = inCart ? inCart.qty : 0;
-          if (!prod || currentQty >= prod.stock) {
-            showToast("No additional packs available in live stock.");
-            return;
-          }
-          if (inCart) inCart.qty += 1;
-          else cart.push({ id: prod.id, name: prod.name, weightLb: prod.weightLb, pricePerLb: prod.pricePerLb, qty: 1 });
-          renderCart();
-          showToast(`Added ${prod.name} to basket.`);
-        });
-      });
+      grid.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => {
+        const p = products.find(x => x.id === b.dataset.add), found = cart.find(x => x.id === p.id);
+        if (!p || (found?.qty || 0) >= p.stock) return showToast("No additional stock available.");
+        if (found) found.qty++; else cart.push({id:p.id,name:p.name,weight_lb:p.weight_lb,price_per_lb:p.price_per_lb,qty:1});
+        renderCart();
+      }));
     }
-
     function renderCart() {
-      const itemsEl = document.getElementById("cartItems");
-      const sumEl = document.getElementById("cartSummary");
-      if (!cart.length) {
-        itemsEl.innerHTML = `<p style="color:var(--ink-muted);">Your basket is empty.</p>`;
-        sumEl.textContent = "";
-        return;
-      }
-
-      let subtotal = 0;
-      itemsEl.innerHTML = cart.map((item, idx) => {
-        const line = item.weightLb * item.pricePerLb * item.qty;
-        subtotal += line;
-        return `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0; border-bottom:1px solid var(--border);">
-            <span>${item.name} (${item.weightLb} lb × ${item.qty})</span>
-            <div>
-              <strong>$${line.toFixed(2)}</strong>
-              <button class="btn btn-secondary btn-sm" data-rem="${idx}" style="margin-left:0.5rem;">Remove</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      const fee = Number(state.settings.deliveryFee);
-      sumEl.textContent = `Subtotal: $${subtotal.toFixed(2)} + $${fee.toFixed(2)} Dallas Sunday Delivery = Total: $${(subtotal + fee).toFixed(2)}`;
-
-      itemsEl.querySelectorAll("[data-rem]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          cart.splice(Number(btn.getAttribute("data-rem")), 1);
-          renderCart();
-        });
-      });
+      const items = document.getElementById("cartItems"), summary = document.getElementById("cartSummary");
+      if (!cart.length) { items.innerHTML = "<p>Your basket is empty.</p>"; summary.textContent = ""; return; }
+      const subtotal = cart.reduce((s,x) => s+x.weight_lb*x.price_per_lb*x.qty,0);
+      items.innerHTML = cart.map((x,i) => `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span>${escapeHtml(x.name)} (${x.weight_lb} lb × ${x.qty})</span><button class="btn btn-secondary btn-sm" data-remove="${i}">Remove</button></div>`).join("");
+      summary.textContent = "Subtotal: " + money(subtotal) + " + delivery fee calculated at checkout";
+      items.querySelectorAll("[data-remove]").forEach(b => b.addEventListener("click",()=>{cart.splice(Number(b.dataset.remove),1);renderCart();}));
     }
-
-    document.getElementById("placeOrderBtn").addEventListener("click", () => {
-      if (!isOrderWindowOpen(state)) {
-        showToast("Orders can only be placed Friday 12:00 AM – Saturday Midnight.");
-        return;
-      }
-      if (!cart.length) {
-        showToast("Add at least one pack to your basket first.");
-        return;
-      }
-      const phone = getSessionPhone();
-      const customer = state.customers[phone];
-
-      for (const item of cart) {
-        const prod = state.products.find(p => p.id === item.id);
-        if (!prod || prod.stock < item.qty) {
-          showToast(`Insufficient stock for ${item.name}.`);
-          return;
-        }
-        prod.stock -= item.qty;
-      }
-
-      const subtotal = cart.reduce((acc, i) => acc + i.weightLb * i.pricePerLb * i.qty, 0);
-      const deliveryFee = Number(state.settings.deliveryFee);
-      const order = {
-        id: "TEST-TRM-" + Math.floor(100000 + Math.random() * 900000),
-        mode: "TEST",
-        phone,
-        customerName: customer.fullName,
-        address: `${customer.address} (${customer.zip})`,
-        items: JSON.parse(JSON.stringify(cart)),
-        subtotal: Number(subtotal.toFixed(2)),
-        deliveryFee,
-        total: Number((subtotal + deliveryFee).toFixed(2)),
-        paymentMethod: document.getElementById("paymentMethod").value,
-        paymentStatus: "Pending",
-        stage: "Received",
-        createdAt: new Date().toISOString()
-      };
-
-      state.orders.unshift(order);
-      saveState(state);
-      cart = [];
-      showToast(`Test order ${order.id} saved on this device only.`);
-      setTimeout(() => { window.location.href = "orders.html"; }, 900);
+    document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+      if (!cart.length) return showToast("Add at least one pack first.");
+      const button = document.getElementById("placeOrderBtn"); button.disabled = true;
+      try {
+        const { data, error } = await supabase.rpc("place_order", { p_items: cart.map(x => ({product_id:x.id,quantity:x.qty})), p_payment_method: document.getElementById("paymentMethod").value });
+        if (error) throw error;
+        cart = []; showToast("Order received. Order #" + String(data).slice(0,8));
+        window.location.href = "orders.html";
+      } catch (error) { showToast(error.message || "Order could not be placed."); button.disabled = false; }
     });
-
+    function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
     init();
   </script>
 </body>

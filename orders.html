@@ -1,74 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Sunday Orders | Texas Ranch Meat</title>
-  <link rel="stylesheet" href="css/styles.css" />
-</head>
-<body>
-  <header id="siteHeader" class="ranch-header"></header>
-
-  <main class="container">
-    <section class="card">
-      <h1>My Sunday Delivery Orders</h1>
-      <p style="color:var(--ink-muted); margin-bottom:1rem;">Track test orders saved in this browser. Test orders are not transmitted for fulfillment.</p>
-      <div id="ordersContainer"></div>
-    </section>
-  </main>
-
-  <footer class="ranch-footer">
-    Texas Ranch Meat • Sunday-Only Delivery • Dallas 30-Mile Radius
-  </footer>
-
-  <script type="module">
-    import {
-      pullRemoteState, getSessionPhone, ORDER_STAGES, renderHeader
-    } from "./js/store.js";
-
-    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
-    })[char]);
-
-    async function init() {
-      const phone = getSessionPhone();
-      if (!phone) {
-        window.location.replace("index.html");
-        return;
-      }
-      renderHeader("orders");
-      const state = await pullRemoteState();
-      const myOrders = state.orders.filter((order) => order.phone === phone);
-      const container = document.getElementById("ordersContainer");
-
-      if (!myOrders.length) {
-        container.innerHTML = `<p>No orders yet. <a href="index.html">Visit the Storefront</a> to place your weekend order.</p>`;
-        return;
-      }
-
-      container.innerHTML = myOrders.map((order) => {
-        const currentIdx = ORDER_STAGES.indexOf(order.stage);
-        const stepsHtml = ORDER_STAGES.map((stage, idx) => `
-          <div class="tracker-step ${idx <= currentIdx ? "done" : ""}">${idx + 1}. ${escapeHtml(stage)}</div>
-        `).join("");
-
-        const itemsText = (Array.isArray(order.items) ? order.items : [])
-          .map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.qty)}`).join(", ");
-        return `
-          <div class="card" style="background:var(--bg);">
-            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-              <strong>${order.mode === "TEST" ? "TEST ORDER" : "Order"} #${escapeHtml(order.id)}</strong>
-              <span class="badge">${escapeHtml(order.paymentMethod)} • ${escapeHtml(order.paymentStatus)}</span>
-            </div>
-            <p style="margin:0.4rem 0; font-size:0.9rem;"><strong>Items:</strong> ${itemsText}</p>
-            <p style="font-size:0.9rem;"><strong>Total:</strong> $${Number(order.total || 0).toFixed(2)} • <strong>Deliver to:</strong> ${escapeHtml(order.address)}</p>
-            <div class="tracker-steps">${stepsHtml}</div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    init();
-  </script>
-</body>
-</html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>My Orders | Texas Ranch Meat</title><link rel="stylesheet" href="css/styles.css" /></head>
+<body><header id="siteHeader" class="ranch-header"></header><main class="container"><section class="card"><h1>My Sunday Delivery Orders</h1><p style="color:var(--ink-muted);margin-bottom:1rem;">Your account order history and live fulfillment status.</p><div id="ordersContainer">Loading orders…</div></section></main><footer class="ranch-footer">Texas Ranch Meat • Sunday-Only Delivery • Dallas Service Area</footer>
+<script type="module">
+import {supabase,requireUser,signOut} from "./js/supabase.js";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function header(){document.getElementById("siteHeader").innerHTML=`<a href="index.html" class="brand-link"><img src="assets/logo.jpg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><nav class="ranch-nav"><a href="index.html">Storefront</a><a href="orders.html" class="active">My Orders</a><a href="profile.html">Ranch Profile</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></nav>`;document.getElementById("signOut").onclick=async()=>{await signOut();location.href="index.html";};}
+async function init(){const user=await requireUser();if(!user){location.replace("index.html");return;}header();const {data,error}=await supabase.from("orders").select("id,status,payment_method,payment_status,subtotal,delivery_fee,total,delivery_address,created_at,order_items(product_name,quantity,weight_lb,price_per_lb,line_total)").order("created_at",{ascending:false});const el=document.getElementById("ordersContainer");if(error){el.textContent=error.message;return;}if(!data?.length){el.innerHTML='<p>No orders yet. <a href="index.html">Visit the storefront</a> to place your first order.</p>';return;}el.innerHTML=data.map(o=>{const stages=["Received","Packaged","On the Way!","Delivered"],idx=stages.indexOf(o.status);return `<article class="card" style="background:var(--bg)"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><strong>Order #${esc(o.id.slice(0,8).toUpperCase())}</strong><span class="badge">${esc(o.payment_status)} • ${esc(o.payment_method)}</span></div><p><strong>Placed:</strong> ${new Date(o.created_at).toLocaleString()}</p><p><strong>Items:</strong> ${o.order_items.map(i=>esc(i.product_name)+" × "+i.quantity).join(", ")}</p><p><strong>Total:</strong> $${Number(o.total).toFixed(2)} • <strong>Deliver to:</strong> ${esc(o.delivery_address)}</p><div class="tracker-steps">${stages.map((s,i)=>`<div class="tracker-step ${i<=idx?"done":""}">${esc(s)}</div>`).join("")}</div></article>`;}).join("");}
+init().catch(e=>document.getElementById("ordersContainer").textContent=e.message);
+</script></body></html>
