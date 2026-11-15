@@ -88,6 +88,7 @@
       document.getElementById("protectedStoreContainer").style.display = "none";
     }
     async function loadCustomer() {
+      renderHeader();
       profile = await getProfile(user.id);
       if (!profile || !profile.full_name || !profile.address || !profile.zip) {
         document.getElementById("authSection").style.display = "block";
@@ -101,7 +102,6 @@
       }
       document.getElementById("authSection").style.display = "none";
       document.getElementById("protectedStoreContainer").style.display = "block";
-      renderHeader();
       await loadProducts();
     }
     function renderHeader() {
