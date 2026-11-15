@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Texas Ranch Meat | Dallas Ranch-Grown Goat Delivery</title>
+  <title>Texas Ranch Meat | Goat &amp; Chicken</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -13,8 +13,8 @@
     <section class="hero-banner">
       <img src="assets/logo.jpg" alt="Texas Ranch Meat Logo" class="hero-logo" />
       <div class="hero-content">
-        <h1>Texas-Raised Goat Meat, Delivered Sundays</h1>
-        <p>Grown and served in Texas. Orders open <strong>Friday 12:00 AM through Saturday Midnight</strong> for Sunday delivery within a <strong>30-mile radius of Dallas</strong>.</p>
+        <h1>Fresh Goat &amp; Chicken, Delivered Sundays</h1>
+        <p>Fresh ranch favorites, delivered to your door. Orders open <strong>Friday 12:00 AM through Saturday Midnight</strong> for Sunday delivery within a <strong>30-mile radius of Dallas</strong>.</p>
         <div class="badge-row" id="statusBadges"></div>
       </div>
     </section>
@@ -53,8 +53,9 @@
     <!-- PROTECTED STOREFRONT CONTENT (Rendered ONLY after successful login) -->
     <div id="protectedStoreContainer" class="protected-content" style="display: none;">
       <section class="card">
-        <h2>Fresh Texas Ranch Cuts (Market-Matched Per/Lb)</h2>
-        <div id="productGrid" class="grid-2" style="margin-top:1rem;"></div>
+        <h2>Shop Our Meat</h2>
+        <p style="color:var(--ink-muted);">Choose from our two categories: goat and chicken.</p>
+        <div id="productGrid" style="display:grid; gap:1rem; margin-top:1rem;"></div>
       </section>
 
       <section class="card">
@@ -168,29 +169,36 @@
     function renderProducts() {
       const open = isOrderWindowOpen(state);
       const grid = document.getElementById("productGrid");
-      const visible = state.products.filter(p => p.category === "goat" || state.settings.chickenEnabled);
+      const categories = [
+        { id: "goat", title: "Goat" },
+        { id: "chicken", title: "Chicken" }
+      ];
 
-      grid.innerHTML = visible.map(p => {
-        const packPrice = (p.weightLb * p.pricePerLb).toFixed(2);
-        const soldOut = p.stock <= 0;
-        return `
-          <div class="card" style="margin-bottom:0;">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-              <h3>${p.name}</h3>
-              <span class="badge">${p.stock} packs live</span>
-            </div>
-            <p style="color:var(--ink-muted); margin:0.4rem 0;">
-              ${p.weightLb} lb pack • <strong>$${Number(p.pricePerLb).toFixed(2)}/lb</strong> ($${packPrice}/pack)
-            </p>
-            <button
-              class="btn btn-sm"
-              data-add="${p.id}"
-              ${!open || soldOut ? "disabled" : ""}
-            >
-              ${soldOut ? "Sold Out" : open ? "+ Add Pack to Basket" : "Opens Friday"}
-            </button>
-          </div>
-        `;
+      grid.innerHTML = categories.map(category => {
+        const products = state.products.filter(p => p.category === category.id);
+        if (!products.length) return "";
+        const cards = products.map(p => {
+          const packPrice = (p.weightLb * p.pricePerLb).toFixed(2);
+          const soldOut = p.stock <= 0;
+          return `
+            <article class="card" style="margin:0;">
+              <div style="display:flex; justify-content:space-between; align-items:start; gap:.75rem;">
+                <h3>${p.name}</h3>
+                <span class="badge">${soldOut ? "Sold Out" : "In Stock"}</span>
+              </div>
+              <p style="color:var(--ink-muted); margin:.4rem 0;">
+                ${p.weightLb} lb pack • <strong>${Number(p.pricePerLb).toFixed(2)}/lb</strong> (${packPrice}/pack)
+              </p>
+              <button class="btn btn-sm" data-add="${p.id}" ${!open || soldOut ? "disabled" : ""}>
+                ${soldOut ? "Sold Out" : open ? "Add to Basket" : "Opens Friday"}
+              </button>
+            </article>
+          `;
+        }).join("");
+        return `<section aria-labelledby="category-${category.id}">
+          <h3 id="category-${category.id}">${category.title}</h3>
+          <div class="grid-2">${cards}</div>
+        </section>`;
       }).join("");
 
       grid.querySelectorAll("[data-add]").forEach(btn => {
