@@ -11,18 +11,12 @@
 
   <main class="container">
     <section class="card">
-      <h1>Ranch Admin Command Center</h1>
-      <p style="color:var(--ink-muted); margin-bottom:1rem;">Local demo controls. Changes are saved in this browser only.</p>
-      <div id="adminNotice" class="badge closed" role="status">Admin access requires a trusted server in a production deployment.</div>
-    </section>
-
-    <section class="card">
       <h2>Live Order Pipeline (Received → Packaged → On the Way! → Delivered)</h2>
       <div id="kanbanBoard" class="grid-4" style="margin-top:1rem;"></div>
     </section>
 
     <section class="card">
-      <h2>Stock Availability &amp; Market Pricing</h2>
+      <h2>Stock Availability &amp; Market Pricing (Single Control Center)</h2>
       <div style="overflow-x:auto; margin:1rem 0;">
         <table>
           <thead><tr><th>Cut / Product</th><th>Pack Weight</th><th>Price / Lb ($)</th><th>Live Packs in Stock</th></tr></thead>
@@ -58,7 +52,7 @@
     </section>
 
     <section class="card">
-      <h2>Delegated Admin Access (Registered Customers Only · Max 2 Extra)</h2>
+      <h2>Delegated Admin Access (Registered Customers Only • Max 2 Extra)</h2>
       <div style="display:flex; gap:0.75rem; max-width:480px; margin:0.75rem 0;">
         <select id="delegateSelect" aria-label="Choose a registered customer"></select>
         <button id="grantAdminBtn" class="btn" type="button">Grant Admin</button>
@@ -67,8 +61,8 @@
     </section>
 
     <section class="card">
-      <h2>About data storage</h2>
-      <p style="color:var(--ink-muted);">This static storefront keeps customer profiles and orders in browser storage. They are not shared across devices. Do not store GitHub personal access tokens or sensitive customer data in browser code or sync private records to a public repository. Use a protected server-side API and authenticated admin access for production.</p>
+      <h2>Local demo storage</h2>
+      <p style="color:var(--ink-muted);">Admin edits are saved in this browser only. Do not store GitHub personal access tokens or sync customer records to a public repository. Use a protected server-side API and authenticated admin access for production.</p>
     </section>
   </main>
 
@@ -144,7 +138,7 @@
     function renderPaymentsTable() {
       const tbody = document.getElementById("paymentsTableBody");
       if (!state.orders.length) {
-        tbody.innerHTML = '<tr><td colspan="5">No customer orders recorded on this device.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5">No customer orders recorded yet.</td></tr>';
         return;
       }
       tbody.innerHTML = state.orders.map((order) => `
@@ -186,7 +180,7 @@
         state.admins = state.admins.filter((admin) => admin !== button.dataset.revoke);
         saveState(state);
         renderAdmins();
-        showToast("Delegated admin access revoked on this device.");
+        showToast("Delegated admin access revoked.");
       }));
     }
 
@@ -204,7 +198,7 @@
         state.settings.deliveryFee = Math.max(0, Number(document.getElementById("adminDeliveryFee").value) || 0);
         state.settings.chickenEnabled = document.getElementById("adminChicken").value === "true";
         saveState(state);
-        showToast("Stock and pricing saved in this browser.");
+        showToast("Stock and market pricing updated locally!");
       });
 
       document.getElementById("grantAdminBtn").addEventListener("click", () => {
@@ -215,7 +209,7 @@
         state.admins.push(target);
         saveState(state);
         renderAdmins();
-        showToast(`Granted admin access to ${formatPhone(target)} on this device.`);
+        showToast(`Granted admin access to ${formatPhone(target)}.`);
       });
     }
   </script>
