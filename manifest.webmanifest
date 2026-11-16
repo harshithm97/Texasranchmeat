@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Texas Ranch Meat",
+  "short_name": "Texas Ranch Meat",
+  "description": "Shop premium goat and chicken from Texas Ranch Meat.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8f6ef",
+  "theme_color": "#183524",
+  "categories": ["shopping", "food"],
+  "icons": [
+    { "src": "/assets/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
