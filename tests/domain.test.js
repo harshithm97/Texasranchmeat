@@ -28,12 +28,13 @@ test("calculateCartTotals calculates pack subtotal, delivery and total", () => {
 test("calculateCartTotals handles empty, invalid cart and invalid item values", () => {
   assert.deepEqual(calculateCartTotals([], 2.99), { subtotal: 0, deliveryFee: 2.99, total: 2.99 });
   assert.deepEqual(calculateCartTotals(null, -1), { subtotal: 0, deliveryFee: 0, total: 0 });
-  assert.deepEqual(calculateCartTotals([{ weight_lb: -1, price_per_lb: "bad", qty: 2.8 }], "bad"), { subtotal: 0, deliveryFee: 0, total: 0 });
+  assert.deepEqual(calculateCartTotals([{ weight_lb: -1, price_per_lb: "bad", qty: -2 }], "bad"), { subtotal: 0, deliveryFee: 0, total: 0 });
 });
 test("addCartItem rejects invalid products and out-of-stock products", () => {
   const empty = [];
   assert.deepEqual(addCartItem(empty, null), { cart: empty, added: false, reason: "invalid-product" });
   assert.equal(addCartItem(empty, {}).reason, "invalid-product");
+  assert.equal(addCartItem(null, { id: "goat", stock: 1, weight_lb: 2, price_per_lb: 10 }).added, true);
   assert.equal(addCartItem(empty, { id: "x", stock: 0 }).reason, "out-of-stock");
 });
 test("addCartItem adds a new item with normalized numeric fields", () => {
