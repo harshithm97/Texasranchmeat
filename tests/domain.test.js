@@ -12,6 +12,7 @@ test("normalizePhone accepts country-prefixed US numbers", () => {
 test("normalizePhone rejects missing, malformed and non-US-length values", () => {
   assert.equal(normalizePhone(null), "");
   assert.equal(normalizePhone("12345"), "");
+  assert.equal(normalizePhone("29492954650"), "");
   assert.equal(normalizePhone("2349292954650"), "");
 });
 test("formatMoney formats valid values and safely handles invalid values", () => {
@@ -32,6 +33,7 @@ test("calculateCartTotals handles empty, invalid cart and invalid item values", 
 test("addCartItem rejects invalid products and out-of-stock products", () => {
   const empty = [];
   assert.deepEqual(addCartItem(empty, null), { cart: empty, added: false, reason: "invalid-product" });
+  assert.equal(addCartItem(empty, {}).reason, "invalid-product");
   assert.equal(addCartItem(empty, { id: "x", stock: 0 }).reason, "out-of-stock");
 });
 test("addCartItem adds a new item with normalized numeric fields", () => {
@@ -40,7 +42,7 @@ test("addCartItem adds a new item with normalized numeric fields", () => {
   assert.deepEqual(result.cart, [{ id: "goat", name: "Goat cut", weight_lb: 2, price_per_lb: 11.49, qty: 1, stock: 4 }]);
 });
 test("addCartItem increments an existing item without mutating its input", () => {
-  const original = [{ id: "goat", qty: 1, stock: 3 }];
+  const original = [{ id: "goat", qty: 1, stock: 3 }, { id: "other", qty: 1, stock: 2 }];
   const result = addCartItem(original, { id: "goat", stock: 3 });
   assert.equal(result.added, true);
   assert.equal(result.cart[0].qty, 2);
