@@ -1,63 +1,109 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Texas Ranch Meat | Goat & Chicken</title><link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></head>
-<body>
-<header id="siteHeader" class="ranch-header"></header>
-<main class="container">
-<section class="hero-banner"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="hero-logo"><div class="hero-content"><h1>Fresh Goat & Chicken, Delivered Sundays</h1><p>Fresh ranch favorites, delivered to your door. Orders open Friday through Saturday for Sunday delivery within our Dallas service area.</p><div class="badge-row" id="statusBadges"></div></div></section>
-<section id="authSection" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#183524"><meta name="description" content="Texas Ranch Meat — premium goat and chicken, ranch-quality cuts and Sunday delivery across our Dallas service area.">
+<title>Texas Ranch Meat | Premium Goat & Chicken</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="storefront">
+<header id="siteHeader" class="ranch-header">
+ <a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a>
+ <nav class="ranch-nav" aria-label="Main navigation"><a href="#shop">Shop</a><a href="#promise">Our Promise</a><a href="#delivery">Delivery</a><button id="openLogin" class="btn btn-sage btn-sm">Login / Sign up</button></nav>
+</header>
+<main>
+<section class="home-hero">
+ <div class="hero-photo" role="img" aria-label="Premium fresh goat and chicken prepared for a family meal"></div>
+ <div class="hero-shade"></div>
+ <div class="hero-inner">
+  <div class="hero-copy">
+   <span class="eyebrow"><span class="eyebrow-dot"></span> TEXAS QUALITY. RANCH-ROOTED.</span>
+   <h1>Good meat.<br><em>Good roots.</em><br>Delivered.</h1>
+   <p>Premium goat and chicken cuts, carefully selected for the meals that bring everyone to the table. Shop the ranch collection and get Sunday delivery across our Dallas service area.</p>
+   <div class="hero-actions"><a class="btn btn-brass" href="#shop">Shop the collection <span aria-hidden="true">→</span></a><button id="heroLogin" class="btn btn-outline-light">My account</button></div>
+   <div class="hero-proof"><span>✦ Quality cuts</span><span>✦ Clear pricing</span><span>✦ Sunday delivery</span></div>
+  </div>
+  <div class="hero-mark"><img src="assets/logo.svg" alt="Texas Ranch Meat ranch emblem"><span>RAISED ON QUALITY</span></div>
+ </div>
+ <div class="hero-bottomline"><span>GOAT & CHICKEN SPECIALISTS</span><span>PROUDLY SERVING THE DALLAS AREA</span></div>
+</section>
+<section class="trust-strip" id="promise">
+ <div><span class="trust-icon">✦</span><strong>Curated cuts</strong><small>Goat and chicken essentials</small></div>
+ <div><span class="trust-icon">♧</span><strong>Honest pricing</strong><small>Know your price per pound</small></div>
+ <div><span class="trust-icon">⌖</span><strong>Local delivery</strong><small>Sunday delivery in our service area</small></div>
+ <div><span class="trust-icon">♡</span><strong>Family table first</strong><small>Made for meals worth sharing</small></div>
+</section>
+<section class="catalog-section" id="shop">
+ <div class="section-heading"><div><span class="eyebrow dark-eyebrow">THE RANCH COLLECTION</span><h2>Choose your cut.</h2><p>Explore our current selection of goat and chicken. Stock and prices are updated by our ranch team.</p></div><div class="catalog-tools"><span id="catalogCount" class="catalog-count">Loading today's selection…</span><button id="openLoginShop" class="btn btn-secondary btn-sm">Customer login</button></div></div>
+ <div id="catalogNotice" class="catalog-notice" role="status" hidden></div>
+ <div id="publicProductGrid" class="public-product-grid"><div class="catalog-loading">Preparing the ranch collection…</div></div>
+</section>
+<section class="basket-section" id="basket" hidden><div class="basket-panel"><span class="eyebrow dark-eyebrow">YOUR ORDER</span><h2>Your ranch basket</h2><p>Review your selected cuts before placing your Sunday delivery order.</p><div id="basketItems"></div><div id="basketTotals" class="basket-totals"></div><div class="basket-actions"><label>Payment method<select id="paymentMethod"><option>Zelle</option><option>Venmo</option><option>Cash on Sunday</option><option>Card</option></select></label><button id="placeOrderBtn" class="btn btn-sage">Place Sunday order</button></div><p id="checkoutMessage" role="status"></p></div></section>
+<section class="ranch-story">
+ <div class="story-logo"><img src="assets/logo.svg" alt="Texas Ranch Meat logo"></div>
+ <div><span class="eyebrow">A BETTER WAY TO STOCK YOUR KITCHEN</span><h2>From our ranch mindset<br>to your family table.</h2><p>We keep it focused: goat and chicken, thoughtfully selected and simply presented. No clutter, no guesswork — just the cuts you came for, transparent pack weights, and straightforward ordering.</p><a href="#shop" class="text-link">Explore the collection <span>→</span></a></div>
+</section>
+<section class="delivery-band" id="delivery"><div><span class="eyebrow">PLAN YOUR SUNDAY</span><h2>Your next family meal<br>starts right here.</h2><p>Orders are prepared for Sunday delivery within our Dallas-area service zone. Create your customer profile now; you can add delivery details later before checkout.</p></div><a class="btn btn-brass" href="#shop">Browse available cuts</a></section>
+</main>
+<section id="authSection" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
  <div class="card auth-gate-card auth-modal">
   <button type="button" class="modal-close" id="closeAuth" aria-label="Close login">×</button>
-  <span class="badge">Customer access</span><h2 id="authTitle" style="margin-top:.8rem">Welcome to Texas Ranch Meat</h2>
-  <p id="authDescription" style="color:var(--ink-muted);margin-bottom:1rem">Enter your mobile number to continue. WhatsApp verification will be enabled after our WhatsApp Business setup is complete.</p>
-  <form id="phoneForm"><div class="form-group"><label for="phoneInput">Mobile phone number</label><input id="phoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="(949) 295-4650" required></div><label class="consent-row"><input id="termsConsent" type="checkbox" required><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><button class="btn btn-sage" type="submit">Continue</button></form>
-  <form id="profileCreateForm" hidden style="max-width:480px;margin-top:1rem">
-   <p id="profileFormIntro" style="margin-bottom:1rem;color:var(--ink-muted)">We couldn't find a profile available to this signed-in account. Complete your details to create your customer profile.</p>
-   <div class="form-group"><label for="regName">Full name</label><input id="regName" autocomplete="name" required></div>
-   <div class="form-group"><label for="regAddress">Street address</label><input id="regAddress" autocomplete="street-address" required></div>
-   <div class="form-group"><label for="regZip">Texas ZIP code</label><input id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div><div class="address-check"><button type="button" id="verifyRegAddress" class="btn btn-secondary">Verify address & show map</button><p id="regAddressStatus" class="address-status" role="status" aria-live="polite">Enter your street address and ZIP, then verify it.</p><div id="regAddressMap" class="address-map" hidden></div><button type="button" id="confirmRegAddress" class="btn btn-sage" hidden>Confirm delivery pin</button></div>
-   <div class="row" style="display:flex;gap:.7rem;flex-wrap:wrap"><button type="submit" class="btn btn-sage">Save profile</button><button type="button" id="cancelProfile" class="btn btn-secondary">Cancel</button></div>
+  <span class="badge">CUSTOMER ACCOUNT</span><h2 id="authTitle">Welcome to the ranch.</h2>
+  <p id="authDescription">Enter your mobile number to continue. WhatsApp verification will be enabled after our WhatsApp Business setup is complete.</p>
+  <form id="phoneForm"><div class="form-group"><label for="phoneInput">Mobile phone number</label><input id="phoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="(949) 295-4650" required></div>
+   <label class="consent-row"><input id="termsConsent" type="checkbox" required><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+   <button class="btn btn-sage btn-wide" type="submit">Continue</button>
   </form>
-  <p id="authMessage" role="status" aria-live="polite" style="margin-top:1rem;color:var(--ink-muted)"></p>
-  <p style="margin-top:1rem;font-size:.82rem;color:var(--ink-muted)">Phone numbers are not verified yet. Do not use this flow to recover an account on a different device; WhatsApp verification will provide secure recovery later.</p>
+  <form id="profileCreateForm" hidden>
+   <p id="profileFormIntro">Let's set up your customer profile. Delivery address is optional now and can be added before placing an order.</p>
+   <div class="form-group"><label for="regName">Full name</label><input id="regName" autocomplete="name" required></div>
+   <div class="form-group"><label for="regAddress">Delivery street address <span class="optional-label">Optional</span></label><input id="regAddress" autocomplete="street-address" placeholder="Add this later if you prefer"></div>
+   <div class="form-group"><label for="regZip">ZIP code <span class="optional-label">Optional</span></label><input id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="5-digit ZIP"></div>
+   <p class="form-hint">Address verification is not required to create an account. Delivery details will be needed when you place an order.</p>
+   <div class="row form-actions"><button type="submit" class="btn btn-sage">Create my profile</button><button type="button" id="cancelProfile" class="btn btn-secondary">Back</button></div>
+  </form>
+  <p id="authMessage" role="status" aria-live="polite"></p>
+  <p class="auth-footnote">Phone numbers are not verified yet. WhatsApp account recovery will be enabled after setup.</p>
  </div>
 </section>
-<div id="protectedStoreContainer" class="protected-content" hidden>
- <section class="card"><h2>Shop Our Meat</h2><p style="color:var(--ink-muted)">Choose from our two categories: goat and chicken.</p><div id="productGrid" style="display:grid;gap:1rem;margin-top:1rem"></div></section>
- <section class="card"><h2>Your Sunday Delivery Basket</h2><div id="cartItems" style="margin:.75rem 0"></div><div id="cartSummary" style="font-weight:700;margin-bottom:.5rem"></div><div id="checkoutBreakdown" aria-live="polite" style="margin:0 0 1rem;padding:.85rem 1rem;background:var(--surface-alt);border-radius:12px"></div><div class="form-group" style="max-width:320px"><label for="paymentMethod">Preferred payment method</label><select id="paymentMethod"><option>Zelle</option><option>Venmo</option><option>Cash on Sunday</option><option>Card</option></select></div><button id="placeOrderBtn" class="btn btn-sage">Place order</button></section>
-</div></main><footer class="ranch-footer"><img src="assets/logo.svg" alt="Texas Ranch Meat logo" class="footer-logo"><div>© 2026 Texas Ranch Meat. All rights reserved.</div><div><a href="/terms/">Terms &amp; Conditions</a><span aria-hidden="true"> • </span><a href="/privacy/">Privacy Policy</a></div><div>Customer / Admin contact: <a href="tel:+19492954650">949-295-4650</a></div></footer>
+<section id="customerDock" class="customer-dock" hidden><div><strong id="dockGreeting">Welcome</strong><span>You're signed in to Texas Ranch Meat.</span></div><div class="dock-links"><a href="/orders/">My orders</a><a href="/profile/">My profile</a><a id="dockAdmin" href="/admin/" hidden>Ranch admin</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></div></section>
+<footer class="ranch-footer"><img src="assets/logo.svg" alt="Texas Ranch Meat logo" class="footer-logo"><div class="footer-brand">TEXAS RANCH MEAT</div><div>Premium goat &amp; chicken for your family table.</div><div class="footer-links"><a href="/terms/">Terms &amp; Conditions</a><a href="/privacy/">Privacy Policy</a><a href="tel:+19492954650">949-295-4650</a></div><small>© 2026 Texas Ranch Meat. All rights reserved.</small></footer>
 <script type="module">
 import {supabase,requireUser,getProfile,saveProfile,signOut} from "./js/supabase.js";
-import {isDallas30MileZip,showToast} from "./js/store.js";
-import {createAddressVerifier} from "./js/address-verification.js";
-let user=null,profile=null,products=[],cart=[],phone="";
-const $=id=>document.getElementById(id), money=n=>"$"+Number(n||0).toFixed(2);
-const normalizePhone=v=>{const d=String(v||"").replace(/\D/g,"");return d.length===10?"+1"+d:d.length===11&&d.startsWith("1")?"+"+d:"";};
+const $=id=>document.getElementById(id),money=n=>"$"+Number(n||0).toFixed(2);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const normalizePhone=v=>{const d=String(v||"").replace(/\D/g,"");return d.length===10?"+1"+d:d.length===11&&d.startsWith("1")?"+"+d:"";};
+let user=null,profile=null,phone="",products=[],cart=[],pendingProduct=null;
 function message(t){$("authMessage").textContent=t;}
-const addressVerifier=createAddressVerifier({addressInput:$("regAddress"),zipInput:$("regZip"),verifyButton:$("verifyRegAddress"),confirmButton:$("confirmRegAddress"),status:$("regAddressStatus"),mapElement:$("regAddressMap")});
+function openAuth(){ $("authSection").hidden=false;$("phoneInput").focus(); }
+function closeAuth(){ $("authSection").hidden=true;$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;message(""); }
+function renderCustomer(){if(!user||!profile?.full_name)return;$("customerDock").hidden=false;$("dockGreeting").textContent="Welcome, "+profile.full_name;$("dockAdmin").hidden=!window.__trmAdmin; }
+async function checkAdmin(){if(!user)return false;const {data,error}=await supabase.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();if(error)throw error;window.__trmAdmin=!!data;return !!data;}
 async function recordConsent(){const {error}=await supabase.from("customer_consents").insert({user_id:user.id,phone,terms_version:"2026-11-15",privacy_version:"2026-11-15"});if(error)throw error;}
-function openAuth(){ $("authSection").hidden=false; $("protectedStoreContainer").hidden=true; $("phoneInput").focus(); }
-function closeAuth(){ $("authSection").hidden=true; $("profileCreateForm").hidden=true; $("phoneForm").hidden=false; message(""); if(user&&profile?.full_name&&profile?.address&&profile?.zip){ customerHeader(); $("protectedStoreContainer").hidden=false; loadProducts().catch(e=>showToast(e.message||"Store could not be loaded.")); showToast(`Welcome back, ${profile.full_name}!`); } else { $("protectedStoreContainer").hidden=true; showToast("Login closed. You can browse the Texas Ranch Meat home page."); } }
-function publicHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><button id="openLogin" class="btn btn-sage">Login</button>'; $("openLogin").onclick=openAuth; }
-function customerHeader(){ $("siteHeader").innerHTML='<a href="/" class="brand-link"><img src="assets/logo.svg" alt="Texas Ranch Meat" class="brand-logo"><span>Texas Ranch Meat</span></a><nav class="ranch-nav"><a href="/" class="active">Storefront</a><a href="/orders/">My Orders</a><a href="/profile/">Ranch Profile</a><button id="signOut" class="btn btn-secondary btn-sm">Sign out</button></nav>'; $("signOut").onclick=async()=>{await signOut();location.replace("/");}; }
-async function init(){try{user=await requireUser();publicHeader();if(user){profile=await getProfile(user.id);if(profile?.phone){$("phoneInput").value=profile.phone;}if(profile?.full_name&&profile?.address&&profile?.zip){await enterStore(`Welcome back, ${profile.full_name}!`);return;}}openAuth();}catch(e){publicHeader();message(e.message);openAuth();}}
-$("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=normalizePhone($("phoneInput").value);if(!/^\+1\d{10}$/.test(phone)){message("Enter a valid 10-digit US phone number.");return;}
- const btn=e.submitter;btn.disabled=true;message("");
- try{
-  if(user){profile=await getProfile(user.id);const accountPhone=normalizePhone(profile?.phone||user.user_metadata?.phone);if(profile&&accountPhone===phone&&profile.full_name&&profile.address&&profile.zip){await recordConsent();await enterStore(`Welcome back, ${profile.full_name}!`);return;}
-   if(profile&&accountPhone&&accountPhone!==phone){message("This phone number does not match the account signed in on this device. Sign out and use the original account, or wait for WhatsApp verification to recover an account securely.");return;}
-  }else{const {data,error}=await supabase.auth.signInAnonymously({options:{data:{phone}}});if(error)throw error;user=data.user;profile=await getProfile(user.id);await recordConsent();}
-  $("phoneForm").hidden=true;$("profileCreateForm").hidden=false;$("regName").value=profile?.full_name||"";$("regAddress").value=profile?.address||"";$("regZip").value=profile?.zip||"";$("regName").focus();
- }catch(err){const text=String(err.message||"");message(/duplicate|unique|profiles_phone_key/i.test(text)?"A customer profile already uses this number. For privacy, we cannot reveal or retrieve that profile using an unverified phone number. Use the original signed-in device; WhatsApp account recovery will be enabled after setup.":text);}
- finally{btn.disabled=false;}
-});
-$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name||!address||!/^\d{5}$/.test(zip)||!isDallas30MileZip(zip))throw new Error("Enter your name, street address, and a valid ZIP code in our Dallas delivery area.");const verifiedAddress=addressVerifier.getVerifiedAddress();if(!verifiedAddress)throw new Error("Verify the address and confirm its map pin before saving.");profile=await saveProfile({id:user.id,phone,full_name,address,zip,...verifiedAddress});await enterStore(`Welcome, ${profile.full_name}!`);}catch(err){message(err.message);}finally{btn.disabled=false;}});
-$("cancelProfile").onclick=()=>{ $("profileCreateForm").reset();$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;message("Profile changes cancelled.");};
-async function enterStore(greeting){customerHeader();$("authSection").hidden=true;$("protectedStoreContainer").hidden=false;await loadProducts();showToast(greeting||`Welcome${profile?.full_name?`, ${profile.full_name}`:""}!`);}
-async function loadProducts(){const {data,error}=await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active",true).order("category").order("name");if(error)throw error;products=data||[];$("statusBadges").innerHTML='<span class="badge">Sunday delivery • Dallas service area</span>';renderProducts();renderCart();}
-function renderProducts(){const groups=[["goat","Goat"],["chicken","Chicken"]];$("productGrid").innerHTML=groups.map(([key,label])=>{const list=products.filter(p=>p.category===key);return list.length?'<section><h3>'+label+'</h3><div class="grid-2">'+list.map(p=>'<article class="card" style="margin:0"><h3>'+esc(p.name)+'</h3><p>'+p.weight_lb+' lb pack • '+money(p.price_per_lb)+'/lb • '+money(p.weight_lb*p.price_per_lb)+'/pack</p><span class="badge">'+(p.stock>0?"In stock":"Sold out")+'</span><button class="btn btn-sm" data-add="'+esc(p.id)+'" '+(p.stock>0?"":"disabled")+'>Add to basket</button></article>').join("")+'</div></section>':"";}).join("");$("productGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{const p=products.find(x=>x.id===b.dataset.add),item=cart.find(x=>x.id===p.id);if(item&&item.qty>=p.stock)return showToast("No additional stock available.");if(item)item.qty++;else cart.push({id:p.id,name:p.name,weight_lb:p.weight_lb,price_per_lb:p.price_per_lb,qty:1});renderCart();});}
-function renderCart(){if(!cart.length){$("cartItems").innerHTML="<p>Your basket is empty.</p>";$("cartSummary").textContent="";$("checkoutBreakdown").innerHTML="";return;}const subtotal=cart.reduce((s,x)=>s+x.weight_lb*x.price_per_lb*x.qty,0);const deliveryFee=2.99;const salesTax=0;const total=subtotal+deliveryFee+salesTax;$("cartItems").innerHTML=cart.map((x,i)=>'<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)"><span>'+esc(x.name)+' ('+x.weight_lb+' lb × '+x.qty+')</span><button class="btn btn-secondary btn-sm" data-remove="'+i+'">Remove</button></div>').join("");$("cartSummary").textContent="Order estimate";$("checkoutBreakdown").innerHTML='<div style="display:flex;justify-content:space-between"><span>Items subtotal</span><strong>'+money(subtotal)+'</strong></div><div style="display:flex;justify-content:space-between"><span>Sunday delivery</span><strong>'+money(deliveryFee)+'</strong></div><div style="display:flex;justify-content:space-between"><span>Texas sales tax (raw meat exemption)</span><strong>'+money(salesTax)+'</strong></div><div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:.5rem;padding-top:.5rem;font-size:1.08rem"><strong>Estimated total</strong><strong>'+money(total)+'</strong></div><p style="font-size:.78rem;color:var(--ink-muted);margin-top:.5rem">Delivery ZIP: '+esc(profile?.zip||"not set")+'. Tax shown as $0.00 for unprepared meat and poultry; taxable products, if added, will require a verified ZIP-specific rate.</p>';$("cartItems").querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{cart.splice(Number(b.dataset.remove),1);renderCart();});}
-$("placeOrderBtn").onclick=async()=>{if(!cart.length)return showToast("Add at least one pack first.");const b=$("placeOrderBtn");b.disabled=true;try{const {data,error}=await supabase.rpc("place_order",{p_items:cart.map(x=>({product_id:x.id,quantity:x.qty})),p_payment_method:$("paymentMethod").value});if(error)throw error;cart=[];showToast("Order received. Order #"+String(data).slice(0,8));location.href="/orders/";}catch(e){showToast(e.message||"Order could not be placed.");b.disabled=false;}};
+function renderCatalog(){
+ const grid=$("publicProductGrid");const active=products.filter(p=>p.active);$("catalogCount").textContent=active.length+" ranch cuts available";
+ const cats=[["goat","Goat"],["chicken","Chicken"]];
+ grid.innerHTML=cats.map(([key,label])=>{const list=active.filter(p=>p.category===key);if(!list.length)return "";return '<section class="product-category"><div class="category-heading"><h3>'+label+'</h3><span>'+list.length+' '+(list.length===1?"cut":"cuts")+'</span></div><div class="product-cards">'+list.map(p=>'<article class="product-card"><div class="product-visual '+key+'"><span class="product-tag">'+(p.stock>0?"AVAILABLE":"SOLD OUT")+'</span><span class="product-monogram">'+(key==="goat"?"G":"C")+'</span></div><div class="product-info"><span class="product-category-label">'+label.toUpperCase()+'</span><h4>'+esc(p.name)+'</h4><p class="pack-meta">'+Number(p.weight_lb)+' lb pack · '+money(p.price_per_lb)+'/lb</p><div class="product-bottom"><div><strong>'+money(Number(p.weight_lb)*Number(p.price_per_lb))+'</strong><small>per pack</small></div><button class="btn btn-sage btn-sm" data-buy="'+esc(p.id)+'" '+(p.stock>0?"":"disabled")+'>Add to basket</button></div></div></article>').join("")+'</div></section>';}).join("")||'<div class="empty-catalog"><h3>We are restocking the ranch.</h3><p>Check back soon for fresh goat and chicken cuts.</p></div>';
+ grid.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click",()=>{if(!user){pendingProduct=b.dataset.buy;openAuth();return;}const p=products.find(x=>x.id===b.dataset.buy);if(!p||p.stock<1)return;const item=cart.find(x=>x.id===p.id);if(item&&item.qty>=p.stock)return showBasketPrompt("You have reached the available stock for this cut.");if(item)item.qty++;else cart.push({id:p.id,name:p.name,weight_lb:Number(p.weight_lb),price_per_lb:Number(p.price_per_lb),qty:1,stock:p.stock});renderBasket();$("basket").scrollIntoView({behavior:"smooth",block:"center"});}));
+}
+function addPendingProduct(){if(!pendingProduct)return;const p=products.find(x=>x.id===pendingProduct);pendingProduct=null;if(!p||p.stock<1)return;const item=cart.find(x=>x.id===p.id);if(item&&item.qty>=p.stock)return showBasketPrompt("You have reached the available stock for this cut.");if(item)item.qty++;else cart.push({id:p.id,name:p.name,weight_lb:Number(p.weight_lb),price_per_lb:Number(p.price_per_lb),qty:1,stock:p.stock});renderBasket();$("basket").scrollIntoView({behavior:"smooth",block:"center"});}
+function showBasketPrompt(text){let el=$("catalogNotice");el.hidden=false;el.textContent=text||"Your selection has been added to the basket below.";}
+function renderBasket(){const section=$("basket");section.hidden=!cart.length;if(!cart.length)return;const subtotal=cart.reduce((sum,x)=>sum+x.weight_lb*x.price_per_lb*x.qty,0),fee=2.99;$("basketItems").innerHTML=cart.map(x=>'<div class="basket-line"><div><strong>'+esc(x.name)+'</strong><small>'+x.weight_lb+' lb pack · '+money(x.price_per_lb)+'/lb</small></div><div class="quantity-control"><button data-dec="'+esc(x.id)+'">−</button><strong>'+x.qty+'</strong><button data-inc="'+esc(x.id)+'">+</button><button class="basket-remove" data-remove="'+esc(x.id)+'">Remove</button></div><strong>'+money(x.weight_lb*x.price_per_lb*x.qty)+'</strong></div>').join("");$("basketTotals").innerHTML='<div><span>Meat subtotal</span><strong>'+money(subtotal)+'</strong></div><div><span>Sunday delivery</span><strong>'+money(fee)+'</strong></div><div class="basket-grand"><span>Estimated total</span><strong>'+money(subtotal+fee)+'</strong></div>';$("basketItems").querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{const x=cart.find(i=>i.id===b.dataset.dec);if(x.qty>1)x.qty--;else cart=cart.filter(i=>i.id!==x.id);renderBasket();});$("basketItems").querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>{const x=cart.find(i=>i.id===b.dataset.inc);if(x.qty<x.stock)x.qty++;else showBasketPrompt("You have reached the available stock for this cut.");renderBasket();});$("basketItems").querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{cart=cart.filter(i=>i.id!==b.dataset.remove);renderBasket();});}
+async function loadCatalog(){const {data,error}=await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active",true).order("category").order("name");if(error)throw error;products=data||[];renderCatalog();renderBasket();}
+$("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=normalizePhone($("phoneInput").value);if(!/^\+1\d{10}$/.test(phone)){message("Enter a valid 10-digit US phone number.");return;}const btn=e.submitter;btn.disabled=true;message("");
+ try{if(user){profile=await getProfile(user.id);const accountPhone=normalizePhone(profile?.phone||user.user_metadata?.phone);if(profile&&accountPhone===phone&&profile.full_name){await recordConsent();await checkAdmin();renderCustomer();closeAuth();addPendingProduct();return;}if(profile&&accountPhone&&accountPhone!==phone){message("This phone number does not match the account signed in on this device. Use the original account; WhatsApp recovery will be enabled later.");return;}}
+ else{const {data,error}=await supabase.auth.signInAnonymously({options:{data:{phone}}});if(error)throw error;user=data.user;profile=await getProfile(user.id);await recordConsent();}
+ $("phoneForm").hidden=true;$("profileCreateForm").hidden=false;$("regName").value=profile?.full_name||"";$("regAddress").value=profile?.address||"";$("regZip").value=profile?.zip||"";$("regName").focus();
+ }catch(err){message(err.message||"Could not continue. Please try again.");}finally{btn.disabled=false;}});
+$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name)throw new Error("Enter your full name.");if(zip&&!/^\d{5}$/.test(zip))throw new Error("Enter a valid 5-digit ZIP code or leave it blank.");profile=await saveProfile({id:user.id,phone,full_name,address,zip});await checkAdmin();renderCustomer();closeAuth();addPendingProduct();}catch(err){message(err.message);}finally{btn.disabled=false;}});
+$("cancelProfile").onclick=()=>{$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;message("");};
 $("closeAuth").onclick=closeAuth;$("authSection").addEventListener("click",e=>{if(e.target===$("authSection"))closeAuth();});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("authSection").hidden)closeAuth();});
-init().catch(e=>message(e.message));
-</script></body></html>
+$("openLogin").onclick=openAuth;$("heroLogin").onclick=openAuth;$("openLoginShop").onclick=openAuth;
+$("signOut").onclick=async()=>{await signOut();user=null;profile=null;cart=[];renderBasket();$("customerDock").hidden=true;window.__trmAdmin=false;};
+$("placeOrderBtn").onclick=async()=>{const msg=$("checkoutMessage");if(!user||!profile)return msg.textContent="Sign in to place your order.";if(!cart.length)return msg.textContent="Your basket is empty.";if(!profile.full_name||!profile.address||!profile.zip){msg.innerHTML='Add your delivery address and ZIP code to your <a href="/profile/">customer profile</a> before checkout. Address verification is not required.';return;}const btn=$("placeOrderBtn");btn.disabled=true;msg.textContent="Submitting your order…";try{const {data,error}=await supabase.rpc("place_order",{p_items:cart.map(x=>({product_id:x.id,quantity:x.qty})),p_payment_method:$("paymentMethod").value});if(error)throw error;cart=[];renderBasket();msg.textContent="Order received. Your order number is "+String(data).slice(0,8).toUpperCase()+".";location.href="/orders/";}catch(e){msg.textContent=e.message||"Order could not be placed.";await loadCatalog();}finally{btn.disabled=false;}};
+async function init(){try{user=await requireUser();if(user){profile=await getProfile(user.id);if(profile?.full_name){await checkAdmin();renderCustomer();}else openAuth();}}catch(e){console.warn("Customer session unavailable",e);}await loadCatalog();}
+init().catch(e=>{$("catalogNotice").hidden=false;$("catalogNotice").textContent="The catalogue could not load: "+e.message;});
+</script>
+</body></html>
