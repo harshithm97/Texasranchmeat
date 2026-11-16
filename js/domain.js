@@ -18,9 +18,10 @@ export function calculateCartTotals(cart, deliveryFee = 2.99) {
     const quantity = Math.max(0, Math.floor(Number(item.qty) || 0));
     return sum + weight * price * quantity;
   }, 0);
+  const roundedSubtotal = Math.round((subtotal + Number.EPSILON) * 100) / 100;
   const fee = Number(deliveryFee);
   const safeFee = Number.isFinite(fee) && fee >= 0 ? fee : 0;
-  return { subtotal, deliveryFee: safeFee, total: subtotal + safeFee };
+  return { subtotal: roundedSubtotal, deliveryFee: safeFee, total: Math.round((roundedSubtotal + safeFee + Number.EPSILON) * 100) / 100 };
 }
 
 export function addCartItem(cart, product) {
