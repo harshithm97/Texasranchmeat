@@ -29,6 +29,7 @@ test("calculateCartTotals handles empty, invalid cart and invalid item values", 
   assert.deepEqual(calculateCartTotals([], 2.99), { subtotal: 0, deliveryFee: 2.99, total: 2.99 });
   assert.deepEqual(calculateCartTotals([{ weight_lb: 1, price_per_lb: 2, qty: 1 }]), { subtotal: 2, deliveryFee: 2.99, total: 4.99 });
   assert.deepEqual(calculateCartTotals(null, -1), { subtotal: 0, deliveryFee: 0, total: 0 });
+  assert.deepEqual(calculateCartTotals([{ weight_lb: 0, price_per_lb: 0, qty: 0 }], 0), { subtotal: 0, deliveryFee: 0, total: 0 });
   assert.deepEqual(calculateCartTotals([{ weight_lb: -1, price_per_lb: "bad", qty: -2 }], "bad"), { subtotal: 0, deliveryFee: 0, total: 0 });
 });
 test("addCartItem rejects invalid products and out-of-stock products", () => {
