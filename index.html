@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#183524">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="default">\n<meta name="apple-mobile-web-app-title" content="Texas Ranch Meat">\n<link rel="manifest" href="/manifest.webmanifest">\n<link rel="apple-touch-icon" href="/assets/logo.svg"><meta name="description" content="Texas Ranch Meat — premium goat and chicken, ranch-quality cuts and Sunday delivery across our Dallas service area.">
+<meta name="theme-color" content="#183524">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Texas Ranch Meat">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/logo.svg"><meta name="description" content="Texas Ranch Meat — premium goat and chicken, ranch-quality cuts and Sunday delivery across our Dallas service area.">
 <title>Texas Ranch Meat | Premium Goat & Chicken</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
@@ -106,4 +111,5 @@ $("placeOrderBtn").onclick=async()=>{const msg=$("checkoutMessage");if(!user||!p
 async function init(){try{user=await requireUser();if(user){profile=await getProfile(user.id);if(profile?.full_name){await checkAdmin();renderCustomer();}else openAuth();}}catch(e){console.warn("Customer session unavailable",e);}await loadCatalog();}
 init().catch(e=>{$("catalogNotice").hidden=false;$("catalogNotice").textContent="The catalogue could not load: "+e.message;});
 </script>
-<script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(error => console.warn("PWA service worker registration failed", error))); }</script>\n</body></html>
+<script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(error => console.warn("PWA service worker registration failed", error))); }</script>
+</body></html>
