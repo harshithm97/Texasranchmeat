@@ -207,3 +207,7 @@ td input, td select { min-width:95px; padding:.55rem .65rem; }
 .legal-card h2{margin:1.5rem 0 .45rem;color:var(--leather);font-family:Georgia,serif}
 .legal-card p,.legal-card li{color:var(--ink-muted)}
 @media(max-width:600px){.consent-row{font-size:.82rem}.footer-logo{width:58px;height:58px}}
+
+/* Keep the modal close control above the form and reliably clickable. */
+.auth-modal .modal-close{z-index:5;pointer-events:auto;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.auth-modal .modal-close:focus-visible{outline:3px solid var(--brass);outline-offset:3px}
