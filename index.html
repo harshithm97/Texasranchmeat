@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Texas Ranch Meat | Goat & Chicken</title><link rel="stylesheet" href="css/styles.css"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Texas Ranch Meat | Goat & Chicken</title><link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></head>
 <body>
 <header id="siteHeader" class="ranch-header"></header>
 <main class="container">
@@ -14,7 +14,7 @@
    <p id="profileFormIntro" style="margin-bottom:1rem;color:var(--ink-muted)">We couldn't find a profile available to this signed-in account. Complete your details to create your customer profile.</p>
    <div class="form-group"><label for="regName">Full name</label><input id="regName" autocomplete="name" required></div>
    <div class="form-group"><label for="regAddress">Street address</label><input id="regAddress" autocomplete="street-address" required></div>
-   <div class="form-group"><label for="regZip">Texas ZIP code</label><input id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
+   <div class="form-group"><label for="regZip">Texas ZIP code</label><input id="regZip" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div><div class="address-check"><button type="button" id="verifyRegAddress" class="btn btn-secondary">Verify address & show map</button><p id="regAddressStatus" class="address-status" role="status" aria-live="polite">Enter your street address and ZIP, then verify it.</p><div id="regAddressMap" class="address-map" hidden></div><button type="button" id="confirmRegAddress" class="btn btn-sage" hidden>Confirm delivery pin</button></div>
    <div class="row" style="display:flex;gap:.7rem;flex-wrap:wrap"><button type="submit" class="btn btn-sage">Save profile</button><button type="button" id="cancelProfile" class="btn btn-secondary">Cancel</button></div>
   </form>
   <p id="authMessage" role="status" aria-live="polite" style="margin-top:1rem;color:var(--ink-muted)"></p>
@@ -28,11 +28,13 @@
 <script type="module">
 import {supabase,requireUser,getProfile,saveProfile,signOut} from "./js/supabase.js";
 import {isDallas30MileZip,showToast} from "./js/store.js";
+import {createAddressVerifier} from "./js/address-verification.js";
 let user=null,profile=null,products=[],cart=[],phone="";
 const $=id=>document.getElementById(id), money=n=>"$"+Number(n||0).toFixed(2);
 const normalizePhone=v=>{const d=String(v||"").replace(/\D/g,"");return d.length===10?"+1"+d:d.length===11&&d.startsWith("1")?"+"+d:"";};
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function message(t){$("authMessage").textContent=t;}
+const addressVerifier=createAddressVerifier({addressInput:$("regAddress"),zipInput:$("regZip"),verifyButton:$("verifyRegAddress"),confirmButton:$("confirmRegAddress"),status:$("regAddressStatus"),mapElement:$("regAddressMap")});
 async function recordConsent(){const {error}=await supabase.from("customer_consents").insert({user_id:user.id,phone,terms_version:"2026-11-15",privacy_version:"2026-11-15"});if(error)throw error;}
 function openAuth(){ $("authSection").hidden=false; $("protectedStoreContainer").hidden=true; $("phoneInput").focus(); }
 function closeAuth(){ $("authSection").hidden=true; $("profileCreateForm").hidden=true; $("phoneForm").hidden=false; message(""); if(user&&profile?.full_name&&profile?.address&&profile?.zip){ customerHeader(); $("protectedStoreContainer").hidden=false; loadProducts().catch(e=>showToast(e.message||"Store could not be loaded.")); showToast(`Welcome back, ${profile.full_name}!`); } else { $("protectedStoreContainer").hidden=true; showToast("Login closed. You can browse the Texas Ranch Meat home page."); } }
@@ -49,7 +51,7 @@ $("phoneForm").addEventListener("submit",async e=>{e.preventDefault();phone=norm
  }catch(err){const text=String(err.message||"");message(/duplicate|unique|profiles_phone_key/i.test(text)?"A customer profile already uses this number. For privacy, we cannot reveal or retrieve that profile using an unverified phone number. Use the original signed-in device; WhatsApp account recovery will be enabled after setup.":text);}
  finally{btn.disabled=false;}
 });
-$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name||!address||!/^\d{5}$/.test(zip)||!isDallas30MileZip(zip))throw new Error("Enter your name, street address, and a valid ZIP code in our Dallas delivery area.");profile=await saveProfile({id:user.id,phone,full_name,address,zip});await enterStore(`Welcome, ${profile.full_name}!`);}catch(err){message(err.message);}finally{btn.disabled=false;}});
+$("profileCreateForm").addEventListener("submit",async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const full_name=$("regName").value.trim(),address=$("regAddress").value.trim(),zip=$("regZip").value.trim();if(!full_name||!address||!/^\d{5}$/.test(zip)||!isDallas30MileZip(zip))throw new Error("Enter your name, street address, and a valid ZIP code in our Dallas delivery area.");const verifiedAddress=addressVerifier.getVerifiedAddress();if(!verifiedAddress)throw new Error("Verify the address and confirm its map pin before saving.");profile=await saveProfile({id:user.id,phone,full_name,address,zip,...verifiedAddress});await enterStore(`Welcome, ${profile.full_name}!`);}catch(err){message(err.message);}finally{btn.disabled=false;}});
 $("cancelProfile").onclick=()=>{ $("profileCreateForm").reset();$("profileCreateForm").hidden=true;$("phoneForm").hidden=false;message("Profile changes cancelled.");};
 async function enterStore(greeting){customerHeader();$("authSection").hidden=true;$("protectedStoreContainer").hidden=false;await loadProducts();showToast(greeting||`Welcome${profile?.full_name?`, ${profile.full_name}`:""}!`);}
 async function loadProducts(){const {data,error}=await supabase.from("products").select("id,category,name,weight_lb,price_per_lb,stock,active").eq("active",true).order("category").order("name");if(error)throw error;products=data||[];$("statusBadges").innerHTML='<span class="badge">Sunday delivery • Dallas service area</span>';renderProducts();renderCart();}
