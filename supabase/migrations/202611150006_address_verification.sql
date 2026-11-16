@@ -11,5 +11,5 @@ do $$ begin
    (address_lat between -90 and 90 and address_lon between -180 and 180));
  end if;
 end $$;
-comment on column public.profiles.address_match is 'US Census matched address; private customer profile data.';
+comment on column public.profiles.address_match is 'OpenStreetMap Photon matched address; private customer profile data.';
 comment on column public.profiles.address_verified_at is 'Time customer confirmed the map pin; not proof of delivery-area eligibility.';
