@@ -14,15 +14,15 @@ export async function requireUser() {
   return data?.user || null;
 }
 export async function getProfile(userId) {
-  const { data, error } = await supabase.from("profiles").select("id,phone,full_name,address,zip").eq("id", userId).maybeSingle();
+  const { data, error } = await supabase.from("profiles").select("id,phone,full_name,address,zip,address_lat,address_lon,address_match,address_verified_at").eq("id", userId).maybeSingle();
   if (error) throw error;
   return data;
 }
 export async function saveProfile(profile) {
   const { data, error } = await supabase.from("profiles").upsert({
     id: profile.id, phone: profile.phone, full_name: profile.full_name,
-    address: profile.address, zip: profile.zip, updated_at: new Date().toISOString()
-  }).select("id,phone,full_name,address,zip").single();
+    address: profile.address, zip: profile.zip, address_lat: profile.address_lat, address_lon: profile.address_lon, address_match: profile.address_match, address_verified_at: profile.address_verified_at, updated_at: new Date().toISOString()
+  }).select("id,phone,full_name,address,zip,address_lat,address_lon,address_match,address_verified_at").single();
   if (error) throw error;
   return data;
 }
